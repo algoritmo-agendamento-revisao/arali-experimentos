@@ -3,6 +3,8 @@ import numpy as np
 
 class UtilitarioQLearning:
 
+    __qlearning_salvo__ = None
+
     def __init__(self):
         pass
 
@@ -29,3 +31,9 @@ class UtilitarioQLearning:
                    '2.0', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7']
         return nova_tabela
         #print(tabulate(nova_tabela, headers=headers, tablefmt='orgtbl'))
+
+    def salvar_tabela(self, tabela):
+        self.__qlearning_salvo__ = tabela
+
+    def retornar_tabela_salva(self):
+        return self.__qlearning_salvo__

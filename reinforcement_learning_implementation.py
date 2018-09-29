@@ -9,7 +9,7 @@ from modelos.resposta_usuario.respostausuario import RespostaUsuario
 from modelos.estudo.estudo import Estudo
 from modelos.cards.gerenciadorcard import GerenciadorCard
 from modelos.estudo.gerenciadorestudo import GerenciadorEstudo
-from modelos.mapeador_estado_acao.utilitarioqlearning import UtilitarioQLearning
+from modelos.utilitario_q_learning.utilitarioqlearning import UtilitarioQLearning
 
 
 class Agente:
@@ -17,7 +17,7 @@ class Agente:
     __qtd_possiveis_efs__ = 16
     __utilitario_qlearning__ = UtilitarioQLearning()
 
-    lr = .8 #taxa de aprendizagem
+    a = .8 #taxa de aprendizagem
     y = .10 #fator de desconto
 
     __gerenciador_card__: GerenciadorCard = GerenciadorCard()
@@ -33,8 +33,11 @@ class Agente:
         oi = part1 * part2
         return timedelta(days=oi.days)
 
-    def __inicializar_tabela_qlearning__(self):
-        self.q_table = np.zeros([self.__qtd_possiveis_estados__ + 1, self.__qtd_possiveis_efs__])
+    def __inicializar_tabela_qlearning__(self, tabela_q_learning=None):
+        if tabela_q_learning is None:
+            self.q_table = np.zeros([self.__qtd_possiveis_estados__ + 1, self.__qtd_possiveis_efs__])
+        else:
+            self.q_table = tabela_q_learning
 
     # Atualiza tabela/s do Q-learning
     def atualizar_politica(self, recompensa, estudo: Estudo):
@@ -43,13 +46,14 @@ class Agente:
         card_ef = self.__gerenciador_card__.buscar_card(estudo.card_id).ef
         card_ef = self.__utilitario_qlearning__.mapear_ef_em_acao(card_ef)
 
-        #TODO: Trocar a fórmula do q-learning pra uma de recompensa não determinística
+        #Atualizando QLearning de forma não deterministica
         self.q_table[estado, card_ef] = self.q_table[estado, card_ef] + \
-                                            self.lr * (
+                                            self.a * (
                                                     recompensa +
                                                     self.y * np.max(self.q_table[estado + 1, :]) -
                                                     self.q_table[estado, card_ef]
                                             )
+        pass
 
     def atualizar_estudo(self, estudo: Estudo):
         self.__atualizar_ef_card__(estudo)
@@ -141,7 +145,7 @@ class UserInterface:
     def calcular_recompensa(self, resposta: RespostaUsuario, estudo_corrente: Estudo):
         intervalo = (estudo_corrente.data_proxima_repeticao - estudo_corrente.data_ultima_repeticao).days
         repeticao = estudo_corrente.numero_repeticao
-        tempo_resposta = resposta.tempo_resposta
+        tempo_resposta = resposta.tempo_resposta + 1
         return intervalo * (repeticao / tempo_resposta)
 
 
@@ -153,6 +157,9 @@ class Estudante:
 
 class Controlador:
 
+    def __init__(self, tabela_q_learning = None):
+        self.__tabela_q_learning__ = tabela_q_learning
+
     def run(self):
         # Inicializando os componentes do algoritmo
         agente = Agente()
@@ -161,7 +168,7 @@ class Controlador:
         gerenciador_estudo = GerenciadorEstudo()
         tabelas = []
 
-        agente.__inicializar_tabela_qlearning__()
+        agente.__inicializar_tabela_qlearning__(self.__tabela_q_learning__)
 
         cards = gerenciador_card.buscar_cards('any tag')
 
@@ -186,7 +193,17 @@ class Controlador:
                 # Agente toma ação / Fornece estado do ambiente
                 agente.atualizar_estudo(estudo_corrente)
                 tabelas.append(agente.imprimir_tabela())
-        pass
 
+        return agente.q_table
+
+
+utilitario_q_learning = UtilitarioQLearning()
 controlador = Controlador()
+
+# Salva a tabela do Q Learning que retorna do controlador.run
+utilitario_q_learning.salvar_tabela(controlador.run())
+# Inicializa a tabela do Q Learning para que a tabela atual tenha os valres da tabela da iteração passada
+# Deve-se passar a tabela no construtor
+# TODO: Refatorar como a tabela é iniciada
+controlador = Controlador(utilitario_q_learning.retornar_tabela_salva())
 controlador.run()
