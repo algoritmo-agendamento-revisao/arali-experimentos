@@ -4,7 +4,7 @@ from modelos.cards.card import Card
 from .estudo import Estudo
 
 
-class GerenciadorEstudo:
+class UtilitarioEstudo:
 
     __estudos_na_memoria__ = defaultdict(list)
 
@@ -17,7 +17,7 @@ class GerenciadorEstudo:
         self.__estudos_na_memoria__[card.id] = novo_estudo
 
     def obter_estudos(self):
-        return self.__estudos_na_memoria__.values()
+        return list(self.__estudos_na_memoria__.values())
 
     def buscar_estudo(self, card_id: int):
         return self.__estudos_na_memoria__[card_id]
@@ -31,3 +31,4 @@ class GerenciadorEstudo:
             print(f'primeira: {estudo.data_primeira_repeticao.date()} |'
                   f' ultima : {estudo.data_ultima_repeticao.date()} |'
                   f' proxima: {estudo.data_proxima_repeticao.date()}')
+
