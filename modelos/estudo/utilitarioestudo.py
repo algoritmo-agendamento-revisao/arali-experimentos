@@ -1,6 +1,7 @@
 from datetime import datetime
 from collections import defaultdict
 from modelos.cards.card import Card
+from modelos.cards.utilitariocard import UtilitarioCard
 from .estudo import Estudo
 
 
@@ -25,10 +26,8 @@ class UtilitarioEstudo:
     def atualizar_estudo(self, estudo: Estudo):
         self.__estudos_na_memoria__[estudo.card_id] = estudo
 
-    def imprimir_estudos(self):
-        for key in self.__estudos_na_memoria__.keys():
-            estudo : Estudo = self.__estudos_na_memoria__[key]
-            print(f'primeira: {estudo.data_primeira_repeticao.date()} |'
-                  f' ultima : {estudo.data_ultima_repeticao.date()} |'
-                  f' proxima: {estudo.data_proxima_repeticao.date()}')
-
+    def imprimir_estudo(self, estudo:Estudo):
+        print(f'primeira: {estudo.data_primeira_repeticao.date()} |'
+              f' ultima : {estudo.data_ultima_repeticao.date()} |'
+              f' proxima: {estudo.data_proxima_repeticao.date()} |'
+              f' numero repeticao: {estudo.numero_repeticao}')

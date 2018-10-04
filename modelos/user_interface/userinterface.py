@@ -49,7 +49,7 @@ class UserInterface:
 
     def obter_resposta_automatica(self, tempo_resposta_em_millis: int = None, acerto: bool = None):
         if tempo_resposta_em_millis is None:
-            tempo_resposta_em_millis = random.randint(1, 20000)
+            tempo_resposta_em_millis = random.randint(10000, 25000)
         if acerto is None:
             acerto = True if (random.randint(0, 1) == 1) else False
         return RespostaUsuario(tempo_resposta_em_millis, acerto)
@@ -63,4 +63,5 @@ class UserInterface:
             repeticao = estudo_corrente.numero_repeticao
             tempo_resposta = resposta.tempo_resposta
             recompensa = round(intervalo * (repeticao / tempo_resposta), 3)
+            #print(f'Recompensa: {recompensa} do estudo: {estudo_corrente.card_id} | repeticao: {estudo_corrente.numero_repeticao}')
         return recompensa

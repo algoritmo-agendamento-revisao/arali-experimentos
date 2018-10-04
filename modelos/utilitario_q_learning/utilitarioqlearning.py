@@ -1,6 +1,3 @@
-from tabulate import tabulate
-import numpy as np
-
 class UtilitarioQLearning:
 
     def mapear_numero_repeticao_em_estado(self, repeticao: int):

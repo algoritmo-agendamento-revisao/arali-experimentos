@@ -8,6 +8,7 @@ from modelos.agente.agente import Agente
 
 numero_repeticoes = 9
 
+
 class Controlador:
 
     def __init__(self, tabela_q_learning=None, tabela_cards=None, tabela_estudos=None):
@@ -39,7 +40,7 @@ class Controlador:
 
     def run(self):
         agente = Agente(numero_repeticoes)
-        user_interface = UserInterface()
+        user_interface = UserInterface() #Ambiente
         utilitario_estudo = UtilitarioEstudo()
         utilitario_card = UtilitarioCard()
 
@@ -57,13 +58,12 @@ class Controlador:
 
                 if estudo_corrente.numero_repeticao is not 1:
                     recompensa = user_interface.calcular_recompensa(resposta_do_usuario, estudo_corrente)
-                    print(f'recompensa {recompensa} | '
-                          f'Acertou: {resposta_do_usuario.acerto} | '
-                          f'Tempo: {resposta_do_usuario.tempo_resposta}')
-                    agente.atualizar_politica(recompensa, estudo_corrente)
+                    agente.atualizar_politica(recompensa, estudo_corrente) #  Atualiza tabela Q Learning
+                    agente.atualizar_estudo(estudo_corrente, recompensa)
+                else:
+                    agente.atualizar_estudo(estudo_corrente)
 
-                # Agente toma ação / Fornece estado do ambiente
-                agente.atualizar_estudo(estudo_corrente)
+                utilitario_estudo.imprimir_estudo(estudo_corrente)
 
         self.__atualizar_dados__(
             agente.obter_tabela_q_learing(),

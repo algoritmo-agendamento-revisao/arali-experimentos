@@ -17,7 +17,7 @@ class Agente:
         self.__utilitario_qlearning__ = UtilitarioQLearning()
         self.__gerenciador_card__: UtilitarioCard = UtilitarioCard()
         self.__gerenciador_estudo__: UtilitarioEstudo = UtilitarioEstudo()
-        self.__taxa_aprendizagem__ = .8  # a
+        self.__taxa_aprendizado__ = .8  # a
         self.__fator_desconto__ = .10  # y
         self.__tabela_q_learning_ = []
 
@@ -48,26 +48,36 @@ class Agente:
 
         # Fórmula para atualizar QLearning com recompensas não determinísticas
         self.__tabela_q_learning_[estado, acao] = self.__tabela_q_learning_[estado, acao] + \
-                                                             self.__taxa_aprendizagem__ * (
+                                                  self.__taxa_aprendizado__ * (
                                                                      recompensa +
                                                                      self.__fator_desconto__ * np.max(self.__tabela_q_learning_[estado + 1, :]) -
                                                                      self.__tabela_q_learning_[estado, acao]
                                                 )
 
-    def atualizar_estudo(self, estudo: Estudo):
+    def atualizar_estudo(self, estudo: Estudo, recompensa=None):
+        if recompensa is not None:
+            if int(recompensa) is -1:
+                self.__atualizar_ef_card__(estudo, resetar_ef_card=True)
+
         self.__atualizar_ef_card__(estudo)
         estudo = self.__calcular_proxima_repeticao__(estudo)
         self.__gerenciador_estudo__.atualizar_estudo(estudo)
 
-    def __atualizar_ef_card__(self, estudo: Estudo):
+    # Ação do agente
+    def __atualizar_ef_card__(self, estudo: Estudo, resetar_ef_card=None):
         card = self.__gerenciador_card__.buscar_card(estudo.card_id)
-        estado = estudo.numero_repeticao - 1  # Recebe - 1 pois a recompensa será atribuída a ação passada
-        # (1./(estado+1)) - E - Exloration vs Explotation rate
-        acao = np.argmax(
-            self.__tabela_q_learning_[estado, :] +
-            np.random.randn(1, self.__qtd_possiveis_efs__) * (1./(estado+1))
-        )
-        card.ef = self.__utilitario_qlearning__.mapear_acao_em_ef(acao)  # O ef será resultante do atualizar política
+        #Reseta estudo caso o usuário erre a questão
+        if resetar_ef_card is True:
+            card.ef = 1.3
+        else:
+            #Caso o usuário acerte o EF é mapeado pelo QLearning
+            estado = estudo.numero_repeticao - 1  # Recebe - 1 pois a recompensa será atribuída a ação passada
+            # (1./(estado+1)) - E - Exloration vs Explotation rate
+            acao = np.argmax(
+                self.__tabela_q_learning_[estado, :] +
+                np.random.randn(1, self.__qtd_possiveis_efs__) * (1./(estado+1))
+            )
+            card.ef = self.__utilitario_qlearning__.mapear_acao_em_ef(acao)  # O ef será resultante do atualizar política
         self.__gerenciador_card__.atualizar_card(card)
 
     def __calcular_proxima_repeticao__(self, estudo: Estudo):
@@ -80,7 +90,7 @@ class Agente:
         else:
             # Simulando que o tempo passou o tempo e que o card está sendo exibido na data estipulado
             estudo.data_ultima_repeticao = estudo.data_proxima_repeticao  # datetime.now()
-            estudo.data_proxima_repeticao += self.__calcular_intervalo_em_dias__(ef, estudo.numero_repeticao)
+            estudo.data_proxima_repeticao = estudo.data_primeira_repeticao + self.__calcular_intervalo_em_dias__(ef, estudo.numero_repeticao)
 
         estudo.numero_repeticao += 1
         return estudo
