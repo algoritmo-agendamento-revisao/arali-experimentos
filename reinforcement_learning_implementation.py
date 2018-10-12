@@ -50,27 +50,27 @@ class Controlador:
         if self.__tabela_estudos__ is None:
             self.__criar_estudos__(utilitario_estudo, cards)
 
-        for card in cards:
-            for episodio in range(1, numero_repeticoes+1):
-                user_interface.mostrar_card(card, imprimir_questao=False)
-                resposta_do_usuario = user_interface.obter_resposta_automatica()
+        for episodio in range(1, numero_repeticoes+1):
+            for card in cards[-1:]:
+                user_interface.mostrar_card(card, imprimir_questao=True)
+                resposta_do_usuario = user_interface.obter_resposta()
                 estudo_corrente = utilitario_estudo.buscar_estudo(card.id)
 
                 if estudo_corrente.numero_repeticao is not 1:
                     recompensa = user_interface.calcular_recompensa(resposta_do_usuario, estudo_corrente)
                     agente.atualizar_politica(recompensa, estudo_corrente) #  Atualiza tabela Q Learning
-                    agente.atualizar_estudo(estudo_corrente, recompensa)
+                    agente.atualizar_estudo(estudo_corrente, resposta_do_usuario.acerto)
                 else:
-                    agente.atualizar_estudo(estudo_corrente)
+                    agente.atualizar_estudo_primeira_repeticao(estudo_corrente, resposta_do_usuario.acerto)
 
                 utilitario_estudo.imprimir_estudo(estudo_corrente)
+        pass
 
         self.__atualizar_dados__(
             agente.obter_tabela_q_learing(),
             utilitario_card.buscar_cards('any tag'),
             utilitario_estudo.obter_estudos()
         )
-
 
 controlador = Controlador()
 controlador.run()
@@ -83,5 +83,3 @@ for episodios in range(0, 100):
 
 tabela_q_learning = controlador.obter_tabela_q_learning()
 tabela_cards = controlador.obter_tabela_cards()
-
-pass

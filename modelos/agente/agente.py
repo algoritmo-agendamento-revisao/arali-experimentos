@@ -1,5 +1,6 @@
 import numpy as np
 from datetime import timedelta
+from datetime import datetime
 
 from modelos.utilitario_q_learning.utilitarioqlearning import UtilitarioQLearning
 from modelos.cards.card import Card
@@ -54,23 +55,36 @@ class Agente:
                                                                      self.__tabela_q_learning_[estado, acao]
                                                 )
 
-    def atualizar_estudo(self, estudo: Estudo, recompensa=None):
-        if recompensa is not None:
-            if int(recompensa) is -1:
-                self.__atualizar_ef_card__(estudo, resetar_ef_card=True)
+    def atualizar_estudo(self, estudo: Estudo, acerto=False):
+        if acerto is True:
+            self.__atualizar_ef_card__(estudo)
+            estudo = self.__calcular_proxima_repeticao__(estudo)
+        else:
+            self.__atualizar_ef_card__(estudo, resetar_ef_card=True)
+            estudo = self.__calcular_proxima_repeticao__(estudo, resetar_estudo=True)
 
-        self.__atualizar_ef_card__(estudo)
-        estudo = self.__calcular_proxima_repeticao__(estudo)
         self.__gerenciador_estudo__.atualizar_estudo(estudo)
+
+
+    def atualizar_estudo_primeira_repeticao(self, estudo: Estudo, acerto=False):
+        if acerto is True:
+            self.__atualizar_ef_card__(estudo)
+            estudo = self.__calcular_proxima_repeticao__(estudo)
+        else:
+            self.__atualizar_ef_card__(estudo, resetar_ef_card=True)
+            estudo = self.__calcular_proxima_repeticao__(estudo, resetar_estudo=True)
+
+        self.__gerenciador_estudo__.atualizar_estudo(estudo)
+
 
     # Ação do agente
     def __atualizar_ef_card__(self, estudo: Estudo, resetar_ef_card=None):
         card = self.__gerenciador_card__.buscar_card(estudo.card_id)
-        #Reseta estudo caso o usuário erre a questão
-        if resetar_ef_card is True:
+        ef_antigo = card.ef
+
+        if resetar_ef_card is True:  # Reseta estudo caso o usuário erre a questão
             card.ef = 1.3
         else:
-            #Caso o usuário acerte o EF é mapeado pelo QLearning
             estado = estudo.numero_repeticao - 1  # Recebe - 1 pois a recompensa será atribuída a ação passada
             # (1./(estado+1)) - E - Exloration vs Explotation rate
             acao = np.argmax(
@@ -78,21 +92,32 @@ class Agente:
                 np.random.randn(1, self.__qtd_possiveis_efs__) * (1./(estado+1))
             )
             card.ef = self.__utilitario_qlearning__.mapear_acao_em_ef(acao)  # O ef será resultante do atualizar política
+
+        print(f'EF Novo: {card.ef} | EF Antigo: {ef_antigo}')
         self.__gerenciador_card__.atualizar_card(card)
 
-    def __calcular_proxima_repeticao__(self, estudo: Estudo):
+    def __calcular_proxima_repeticao__(self, estudo: Estudo, resetar_estudo=False):
         card_corrente: Card = self.__gerenciador_card__.buscar_card(estudo.card_id)
         ef = card_corrente.ef
-        if estudo.numero_repeticao is 1:
-            estudo.data_ultima_repeticao = estudo.data_primeira_repeticao
-            estudo.data_proxima_repeticao = estudo.data_primeira_repeticao + self.__calcular_oi__(ef,
-                                                                                                  estudo.numero_repeticao)
-        else:
-            # Simulando que o tempo passou o tempo e que o card está sendo exibido na data estipulado
-            estudo.data_ultima_repeticao = estudo.data_proxima_repeticao  # datetime.now()
-            estudo.data_proxima_repeticao = estudo.data_primeira_repeticao + self.__calcular_intervalo_em_dias__(ef, estudo.numero_repeticao)
 
-        estudo.numero_repeticao += 1
+        if resetar_estudo is True:  # Caso o usuário erre a resposta
+            estudo.numero_repeticao = 1
+            estudo.data_primeira_repeticao = datetime.now() #  Será o tempo de agora pois ele será agendado para daqui a 5 dias depois de errar
+            estudo.data_ultima_repeticao = estudo.data_primeira_repeticao
+            estudo.data_proxima_repeticao = estudo.data_ultima_repeticao + self.__calcular_oi__(ef, estudo.numero_repeticao)
+
+        else:
+            if estudo.numero_repeticao is 1:
+                estudo.data_ultima_repeticao = estudo.data_primeira_repeticao
+                estudo.data_proxima_repeticao = estudo.data_primeira_repeticao + self.__calcular_oi__(ef,
+                                                                                                      estudo.numero_repeticao)
+            else:
+                # Simulando que o tempo passou o tempo e que o card está sendo exibido na data estipulado
+                estudo.data_ultima_repeticao = estudo.data_proxima_repeticao  # datetime.now()
+                estudo.data_proxima_repeticao = estudo.data_ultima_repeticao + self.__calcular_intervalo_em_dias__(ef, estudo.numero_repeticao)
+
+            estudo.numero_repeticao += 1
+
         return estudo
 
     def __calcular_intervalo_em_dias__(self, ef, repeticao):
