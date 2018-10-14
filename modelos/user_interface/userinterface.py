@@ -47,7 +47,8 @@ class UserInterface:
         print('---------------------------------------------------------------------------------------')
         return resposta_usuario
 
-    def obter_resposta_automatica(self, tempo_resposta_em_millis: int = None, acerto: bool = None):
+    def obter_resposta_automatica(self, tempo_resposta_em_millis: int=None, acerto: bool=None):
+        #TODO: Implementar o modelo do estudante
         if tempo_resposta_em_millis is None:
             tempo_resposta_em_millis = random.randint(10000, 25000)
         if acerto is None:

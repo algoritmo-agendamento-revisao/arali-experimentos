@@ -52,8 +52,8 @@ class Controlador:
 
         for episodio in range(1, numero_repeticoes+1):
             for card in cards[-1:]:
-                user_interface.mostrar_card(card, imprimir_questao=True)
-                resposta_do_usuario = user_interface.obter_resposta()
+                #user_interface.mostrar_card(card)
+                resposta_do_usuario = user_interface.obter_resposta_automatica()
                 estudo_corrente = utilitario_estudo.buscar_estudo(card.id)
 
                 if estudo_corrente.numero_repeticao is not 1:
@@ -64,7 +64,6 @@ class Controlador:
                     agente.atualizar_estudo_primeira_repeticao(estudo_corrente, resposta_do_usuario.acerto)
 
                 utilitario_estudo.imprimir_estudo(estudo_corrente)
-        pass
 
         self.__atualizar_dados__(
             agente.obter_tabela_q_learing(),
