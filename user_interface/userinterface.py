@@ -3,7 +3,8 @@ import random
 from modelos.cards.card import Card
 from modelos.resposta_usuario.respostausuario import RespostaUsuario
 from modelos.estudo.estudo import Estudo
-
+from modelos_matematicos.simulador_memoria_estudante.simulador_memoria_estudante import obter_acerto_modelo_ebbinghaus, obter_acerto_primeira_repeticao
+from modelos_matematicos.simulador_tempo_resposta.simulador_tempo_resposta import distribuicao_normal
 # Essa classe é a representação do Ambiente
 class UserInterface:
 
@@ -47,22 +48,26 @@ class UserInterface:
         print('---------------------------------------------------------------------------------------')
         return resposta_usuario
 
-    def obter_resposta_automatica(self, tempo_resposta_em_millis: int=None, acerto: bool=None):
-        #TODO: Implementar o modelo do estudante
+    def obter_resposta_automatica(self, tempo_resposta_em_millis: int=None, acerto: bool=None, intervalo:int=None):
         if tempo_resposta_em_millis is None:
-            tempo_resposta_em_millis = random.randint(10000, 25000)
+            tempo_resposta_em_millis = distribuicao_normal(5, 4)
+
         if acerto is None:
-            acerto = True if (random.randint(0, 1) == 1) else False
+            if intervalo is None:
+                acerto = obter_acerto_primeira_repeticao()
+            else:
+                acerto = obter_acerto_modelo_ebbinghaus(intervalo)
+
         return RespostaUsuario(tempo_resposta_em_millis, acerto)
 
+
     def calcular_recompensa(self, resposta: RespostaUsuario, estudo_corrente: Estudo):
-        recompensa: float
         if resposta.acerto is False:
-            recompensa = -1.0
+            return -1.0
         else:
             intervalo = (estudo_corrente.data_proxima_repeticao - estudo_corrente.data_ultima_repeticao).days
             repeticao = estudo_corrente.numero_repeticao
             tempo_resposta = resposta.tempo_resposta
             recompensa = round((intervalo * (repeticao / tempo_resposta)), 5)
-            print(f'Recompensa: {recompensa} do estudo: {estudo_corrente.card_id} | repeticao: {estudo_corrente.numero_repeticao}')
-        return recompensa
+            print(f'Recompensa: {recompensa} do estudo: {estudo_corrente.card.id} | repeticao: {estudo_corrente.numero_repeticao}')
+            return recompensa

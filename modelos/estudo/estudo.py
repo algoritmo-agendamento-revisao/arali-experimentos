@@ -1,18 +1,22 @@
 from datetime import datetime
-from datetime import timedelta
+from modelos.cards.card import Card
 
 class Estudo:
     tag: str
-    card_id: int
+    card: Card
     data_primeira_repeticao: datetime
     data_ultima_repeticao: datetime
     data_proxima_repeticao: datetime
     numero_repeticao: int
+    concluido: bool
+    acerto_ultima_repeticao: bool
 
-    def __init__(self, tag: str, card_id: int, data_primeira_repeticao: datetime):
-        self.tag = tag
-        self.card_id = card_id
+    def __init__(self, card: Card, data_primeira_repeticao: datetime):
+        self.tag = card.tag
+        self.card = card
         self.data_primeira_repeticao = data_primeira_repeticao
         self.data_ultima_repeticao = None
         self.data_proxima_repeticao = None
         self.numero_repeticao = 1
+        self.concluido = False
+        self.acerto_ultima_repeticao = None

@@ -1,3 +1,5 @@
+#TODO: Implementar um atributo que indique que o card foi aprendido
+
 class Card:
     id: int
     ef: float
