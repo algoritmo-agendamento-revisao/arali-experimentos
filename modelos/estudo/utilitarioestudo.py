@@ -11,7 +11,7 @@ class UtilitarioEstudo:
     def criar_estudo(self, card: Card):
         novo_estudo = Estudo(
             card,
-            datetime.now()
+            datetime.utcfromtimestamp(0)
         )
         self.__lista_estudos__[card.id] = novo_estudo
 

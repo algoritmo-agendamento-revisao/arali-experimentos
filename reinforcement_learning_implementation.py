@@ -1,12 +1,10 @@
-# Libraries
-
 from modelos.cards.card import Card
 from modelos.cards.utilitariocard import UtilitarioCard
 from modelos.estudo.utilitarioestudo import UtilitarioEstudo
 from user_interface.userinterface import UserInterface
 from reinforcement_learning.agente.agente import Agente
 
-numero_repeticoes_maximo = 20
+numero_repeticoes_maximo = 36
 
 class Controlador:
 
@@ -33,14 +31,17 @@ class Controlador:
         agente.__inicializar_tabela_qlearning__(self.__tabela_q_learning__)
         cards = self.__obter_cards__(utilitario_card)
 
+        #Refatorar essa gambiarra aqui
         self.__criar_estudos__(utilitario_estudo, cards)
-        estudos = utilitario_estudo.obter_estudos()
+        estudos_ativos = utilitario_estudo.obter_estudos()
+        qtd_episodios = 0
 
-        while len(estudos) != 0:
-            for estudo_corrente in estudos:
+        while len(estudos_ativos) != 0:
+            for estudo_corrente in estudos_ativos:
                 #user_interface.mostrar_card(card)
 
                 if estudo_corrente.numero_repeticao is not 1:
+                    # Simulando que o algoritmo sempre mostra o card na data agendada
                     intervalo_em_dias = (estudo_corrente.data_proxima_repeticao - estudo_corrente.data_ultima_repeticao).days
                     resposta_do_usuario = user_interface.obter_resposta_automatica(intervalo=intervalo_em_dias)
                     recompensa = user_interface.calcular_recompensa(resposta_do_usuario, estudo_corrente)
@@ -58,9 +59,12 @@ class Controlador:
                     utilitario_estudo.atualizar_estudo(estudo_atualizado)
                 utilitario_estudo.imprimir_estudo(estudo_atualizado)
 
-            estudos = utilitario_estudo.obter_estudos()
+            qtd_episodios += 1
+            estudos_ativos = utilitario_estudo.obter_estudos()  # Se o estudo estiver concluido, ele não é selecionado
 
         self.__tabela_q_learning__ = agente.obter_tabela_q_learing()
+        print(f"qtd episodios= {qtd_episodios}")
+
 
 controlador = Controlador()
 controlador.testar_algoritmo()

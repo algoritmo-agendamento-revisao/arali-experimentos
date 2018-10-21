@@ -1,5 +1,5 @@
 from datetime import datetime
-import random
+import math
 from modelos.cards.card import Card
 from modelos.resposta_usuario.respostausuario import RespostaUsuario
 from modelos.estudo.estudo import Estudo
@@ -50,7 +50,7 @@ class UserInterface:
 
     def obter_resposta_automatica(self, tempo_resposta_em_millis: int=None, acerto: bool=None, intervalo:int=None):
         if tempo_resposta_em_millis is None:
-            tempo_resposta_em_millis = distribuicao_normal(5, 4)
+            tempo_resposta_em_millis = distribuicao_normal(5, 1.5)
 
         if acerto is None:
             if intervalo is None:
@@ -63,11 +63,13 @@ class UserInterface:
 
     def calcular_recompensa(self, resposta: RespostaUsuario, estudo_corrente: Estudo):
         if resposta.acerto is False:
-            return -1.0
+            # TODO: Testar multiplicando o numero de intervalo em dias por -1
+            return -1
+            #return -10 * (estudo_corrente.data_proxima_repeticao - estudo_corrente.data_ultima_repeticao).days
         else:
             intervalo = (estudo_corrente.data_proxima_repeticao - estudo_corrente.data_ultima_repeticao).days
             repeticao = estudo_corrente.numero_repeticao
             tempo_resposta = resposta.tempo_resposta
-            recompensa = round((intervalo * (repeticao / tempo_resposta)), 5)
+            recompensa: float = round((intervalo * (repeticao / math.pow(tempo_resposta, 2))), 5)
             print(f'Recompensa: {recompensa} do estudo: {estudo_corrente.card.id} | repeticao: {estudo_corrente.numero_repeticao}')
             return recompensa

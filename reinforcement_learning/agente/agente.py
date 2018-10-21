@@ -30,7 +30,7 @@ class Agente:
             self.__atualizar_politica__(recompensa, estudo)
         estudo.card.ef = self.__calcular_ef_card__(estudo)
         estudo_atualizado = self.__atualizar_datas_estudo__(estudo)
-        estudo_atualizado.concluido = estudo.numero_repeticao > 12
+        estudo_atualizado.concluido = self.__verificar_estudo_concluido__(estudo_atualizado)
         return estudo_atualizado
 
     def __atualizar_politica__(self, recompensa: float, estudo: Estudo):
@@ -53,7 +53,7 @@ class Agente:
         else:
             s = estudo.numero_repeticao - 1  # Recompensa será atribuída a ação passada
             q_atual = self.__tabela_q_learning__[s, :]
-            taxa_exploracao = (1. / (s + 1))  # Epsilon
+            taxa_exploracao = 0.9  # Epsilon - (1. / (s + 1))
 
             acao = np.argmax(q_atual + np.random.randn(1, self.__qtd_efs__) * taxa_exploracao)
             return self.__utilitario_qlearning__.mapear_acao_em_ef(acao)
@@ -62,7 +62,7 @@ class Agente:
     def __atualizar_datas_estudo__(self, estudo: Estudo):
         if estudo.acerto_ultima_repeticao is False:  # Caso o usuário tenha errado a pergunta
             estudo.numero_repeticao = 1
-            estudo.data_primeira_repeticao = datetime.now()
+            estudo.data_primeira_repeticao = datetime.utcfromtimestamp(0) #datetime.now()
             estudo.data_ultima_repeticao = estudo.data_primeira_repeticao
             # A próxima repetição será agendada para o próximo dia
             estudo.data_proxima_repeticao = estudo.data_ultima_repeticao + timedelta(days=1)
@@ -75,13 +75,21 @@ class Agente:
                 estudo.data_proxima_repeticao = estudo.data_primeira_repeticao + diferenca_em_dias
             else:
                 # Simulando que o tempo passou o tempo e que o card está sendo exibido na data estipulado
-                estudo.data_ultima_repeticao = estudo.data_proxima_repeticao  # datetime.now()
-                diferenca_em_dias = self.__calcular_intervalo_em_dias__(ef, estudo.numero_repeticao)
-                estudo.data_proxima_repeticao += diferenca_em_dias
+                try:
+                    estudo.data_ultima_repeticao = estudo.data_proxima_repeticao
+                    diferenca_em_dias = self.__calcular_intervalo_em_dias__(ef, estudo.numero_repeticao)
+                    estudo.data_proxima_repeticao += diferenca_em_dias
+                except Exception:
+                    print(f"Algo deu errado com o intervalo : {diferenca_em_dias}" + {estudo.data_proxima_repeticao})
 
             estudo.numero_repeticao += 1
 
         return estudo
+
+    def __verificar_estudo_concluido__(self, estudo: Estudo):
+        finalizou_por_repeticao = estudo.numero_repeticao >= 36
+        finalizou_por_intervalo = (estudo.data_proxima_repeticao - estudo.data_ultima_repeticao).days >= 1100
+        return finalizou_por_repeticao or finalizou_por_intervalo
 
     def __calcular_intervalo_em_dias__(self, ef: float, repeticao: int):
         if repeticao is 1:
