@@ -70,6 +70,7 @@ class UserInterface:
             intervalo = (estudo_corrente.data_proxima_repeticao - estudo_corrente.data_ultima_repeticao).days
             repeticao = estudo_corrente.numero_repeticao
             tempo_resposta = resposta.tempo_resposta
-            recompensa: float = round((intervalo * (repeticao / math.pow(tempo_resposta, 2))), 5)
+            #recompensa: float = round((intervalo * (repeticao / math.pow(tempo_resposta, 2))), 5)
+            recompensa: float = round((intervalo * (repeticao / tempo_resposta)), 5)
             print(f'Recompensa: {recompensa} do estudo: {estudo_corrente.card.id} | repeticao: {estudo_corrente.numero_repeticao}')
             return recompensa
