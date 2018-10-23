@@ -29,7 +29,7 @@ class Agente:
         if estudo.numero_repeticao is not 1:
             self.__atualizar_politica__(recompensa, estudo)
         estudo.card.ef = self.__calcular_ef_card__(estudo)
-        estudo_atualizado = self.__atualizar_datas_estudo__(estudo)
+        estudo_atualizado = self.__atualizar_info_estudo__(estudo)
         estudo_atualizado.concluido = self.__verificar_estudo_concluido__(estudo_atualizado)
         return estudo_atualizado
 
@@ -53,13 +53,14 @@ class Agente:
         else:
             s = estudo.numero_repeticao - 1  # Recompensa será atribuída a ação passada
             q_atual = self.__tabela_q_learning__[s, :]
-            taxa_exploracao = 0.9  # Epsilon - (1. / (s + 1))
+            taxa_exploracao = 0.9
+            # taxa_exploracao = (1. / (s + 1))
 
             acao = np.argmax(q_atual + np.random.randn(1, self.__qtd_efs__) * taxa_exploracao)
             return self.__utilitario_qlearning__.mapear_acao_em_ef(acao)
 
 
-    def __atualizar_datas_estudo__(self, estudo: Estudo):
+    def __atualizar_info_estudo__(self, estudo: Estudo):
         if estudo.acerto_ultima_repeticao is False:  # Caso o usuário tenha errado a pergunta
             estudo.numero_repeticao = 1
             estudo.data_primeira_repeticao = datetime.utcfromtimestamp(0) #datetime.now()
@@ -82,6 +83,7 @@ class Agente:
                 except Exception:
                     print(f"Algo deu errado com o intervalo : {diferenca_em_dias}" + {estudo.data_proxima_repeticao})
 
+            estudo.__qtd_repeticoes__ +=1
             estudo.numero_repeticao += 1
 
         return estudo
