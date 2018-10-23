@@ -3,6 +3,8 @@ from modelos.cards.utilitariocard import UtilitarioCard
 from modelos.estudo.utilitarioestudo import UtilitarioEstudo
 from user_interface.userinterface import UserInterface
 from reinforcement_learning.agente.agente import Agente
+from utilitario.utilitario_teste.utilitario_teste import UtilitarioTeste
+import numpy as np
 
 numero_repeticoes_maximo = 36
 
@@ -27,6 +29,7 @@ class Controlador:
         user_interface = UserInterface() #Ambiente
         utilitario_estudo = UtilitarioEstudo()
         utilitario_card = UtilitarioCard()
+        utilitario_teste = UtilitarioTeste()  # Ajuda na obtenção da recompensa média por episodio e qtd de episodios
 
         agente.__inicializar_tabela_qlearning__(self.__tabela_q_learning__)
         cards = self.__obter_cards__(utilitario_card)
@@ -34,9 +37,13 @@ class Controlador:
         #Refatorar essa gambiarra aqui
         self.__criar_estudos__(utilitario_estudo, cards)
         estudos_ativos = utilitario_estudo.obter_estudos()
-        qtd_episodios = 0
+        numero_episodio = 0
+        recompensa_acumulada = 0
 
         while len(estudos_ativos) != 0:
+            numero_episodio += 1
+            recompensa_acumulada = 0
+
             for estudo_corrente in estudos_ativos:
                 #user_interface.mostrar_card(card)
 
@@ -45,6 +52,7 @@ class Controlador:
                     intervalo_em_dias = (estudo_corrente.data_proxima_repeticao - estudo_corrente.data_ultima_repeticao).days
                     resposta_do_usuario = user_interface.obter_resposta_automatica(intervalo=intervalo_em_dias)
                     recompensa = user_interface.calcular_recompensa(resposta_do_usuario, estudo_corrente)
+                    recompensa_acumulada += recompensa
                     estudo_corrente.acerto_ultima_repeticao = resposta_do_usuario.acerto
                     estudo_atualizado = agente.tomar_acao(recompensa, estudo_corrente)
 
@@ -59,14 +67,27 @@ class Controlador:
                     utilitario_estudo.atualizar_estudo(estudo_atualizado)
                 utilitario_estudo.imprimir_estudo(estudo_atualizado)
 
-            qtd_episodios += 1
+            utilitario_teste.salvar_recompensa_media(numero_episodio, recompensa_acumulada/len(estudos_ativos))
             estudos_ativos = utilitario_estudo.obter_estudos()  # Se o estudo estiver concluido, ele não é selecionado
 
         self.__tabela_q_learning__ = agente.obter_tabela_q_learing()
-        print(f"qtd episodios= {qtd_episodios}")
+        print(f"qtd episodios= {numero_episodio}")
+
+        for estudo in utilitario_estudo.obter_estudos_aprendidos():
+            print(f"Estudo: {estudo.card.id} -> Qtd repetições: {estudo.__qtd_repeticoes__}")
+
+        for episodio in range(1, numero_episodio+1):
+            recompensa_episodio = utilitario_teste.obter_recompensa_media_repeticao(episodio)
+            print(f"Episódio: {episodio} -> Recompensa {recompensa_episodio}")
 
 
-controlador = Controlador()
-controlador.testar_algoritmo()
-tabela_q_learning = controlador.obter_tabela_q_learning()
-pass
+tabelas = []
+for i in range(0, 6):
+    controlador = Controlador()
+    controlador.testar_algoritmo()
+    tabela_q_learning = controlador.obter_tabela_q_learning()
+    tabelas.append(tabela_q_learning)
+    nome_arquivo = "execução %d" %(i+1) + ".csv"
+    np.savetxt(nome_arquivo, tabela_q_learning, delimiter=",")
+
+print("finalizado!")
