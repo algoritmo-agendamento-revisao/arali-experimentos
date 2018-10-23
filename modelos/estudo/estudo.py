@@ -10,6 +10,9 @@ class Estudo:
     numero_repeticao: int
     concluido: bool
     acerto_ultima_repeticao: bool
+    #  Metadados
+    __qtd_repeticoes__: int
+
 
     def __init__(self, card: Card, data_primeira_repeticao: datetime):
         self.tag = card.tag
@@ -20,3 +23,4 @@ class Estudo:
         self.numero_repeticao = 1
         self.concluido = False
         self.acerto_ultima_repeticao = None
+        self.__qtd_repeticoes__ = 1
