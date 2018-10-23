@@ -7,6 +7,7 @@ from .estudo import Estudo
 class UtilitarioEstudo:
 
     __lista_estudos__ = defaultdict(list)
+    __lista_estudos_aprendidos__ = defaultdict(list)
 
     def criar_estudo(self, card: Card):
         novo_estudo = Estudo(
@@ -18,6 +19,16 @@ class UtilitarioEstudo:
     def obter_estudos(self):
         return list(self.__lista_estudos__.values())
 
+    def obter_estudos_aprendidos(self):
+        return list(self.__lista_estudos_aprendidos__.values())
+
+    def obter_media_qtd_repeticoes(self):
+        qtd_repeticoes_totais: int = 0
+        qtd_estudos: int = len(self.__lista_estudos_aprendidos__)
+        for estudo in self.__lista_estudos_aprendidos__:
+            qtd_repeticoes_totais += estudo.__qtd_repeticoes__
+        return qtd_repeticoes_totais/qtd_estudos
+
     def buscar_estudo(self, card_id: int):
         return self.__lista_estudos__[card_id]
 
@@ -26,6 +37,7 @@ class UtilitarioEstudo:
 
     def remover_estudo(self, estudo:Estudo):
         self.__lista_estudos__.pop(estudo.card.id, None)
+        self.__lista_estudos_aprendidos__[estudo.card.id] = estudo
 
     def imprimir_estudo(self, estudo:Estudo):
         print(f'Primeira: {estudo.data_primeira_repeticao.date()} |'
