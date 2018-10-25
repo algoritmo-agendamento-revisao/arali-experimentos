@@ -28,7 +28,7 @@ class Controlador:
         return self.__tabela_q_learning__
 
     def testar_algoritmo(self):
-        agente = Agente(numero_repeticoes_maximo)
+        agente = Agente(numero_repeticoes_maximo, 0.1, 0.1, 0.9)
         user_interface = UserInterface() #Ambiente
         utilitario_estudo = UtilitarioEstudo()
         utilitario_card = UtilitarioCard()
@@ -51,8 +51,6 @@ class Controlador:
             quantidade_acerto = 0
 
             for estudo_corrente in estudos_ativos:
-                #user_interface.mostrar_card(card)
-
                 if estudo_corrente.numero_repeticao is not 1:
                     # Simulando que o algoritmo sempre mostra o card na data agendada
                     intervalo_em_dias = (estudo_corrente.data_proxima_repeticao - estudo_corrente.data_ultima_repeticao).days
@@ -68,7 +66,7 @@ class Controlador:
                     estudo_atualizado = agente.tomar_acao(None, estudo_corrente)
 
                 if estudo_atualizado.concluido:
-                    utilitario_estudo.remover_estudo(estudo_atualizado)
+                    utilitario_estudo.marcar_estudo_aprendido(estudo_atualizado)
                 else:
                     utilitario_estudo.atualizar_estudo(estudo_atualizado)
                 #utilitario_estudo.imprimir_estudo(estudo_atualizado)
@@ -97,7 +95,7 @@ class Controlador:
 
         total_repeticoes = utilitario_estudo.obter_total_repeticoes_cards_aprendidos()
         print(f"Total de repeticoes dos cards {total_repeticoes}")
-        self.plot_graphic(x,y,"Quantidade de cards aprendidos por episódio", "Episódio", "% de cards aprendidos")
+        self.plot_graphic(x, y, "Quantidade de cards aprendidos por episódio", "Episódio", "% de cards aprendidos")
 
 
 

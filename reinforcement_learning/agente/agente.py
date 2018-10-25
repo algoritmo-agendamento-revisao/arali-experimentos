@@ -9,12 +9,16 @@ from modelos_matematicos.formula_repeticao.formula_repeticao import calcular_oi
 
 class Agente:
 
-    def __init__(self, numero_repeticoes):
+    def __init__(self, numero_repeticoes, taxa_aprendizagem, fator_desconto, taxa_exploracao=None):
         # Contrói uma tabela com uma linha a mais por causa da ultima repetição
         self.__qtd_repeticoes__ = numero_repeticoes + 1
         self.__qtd_efs__ = 16  # 1.3 - 2.8
         self.__utilitario_qlearning__ = UtilitarioQLearning()
         self.__tabela_q_learning__ = []
+        self.__taxa_aprendizagem__ = taxa_aprendizagem
+        self.__fator_desconto__ = fator_desconto
+        self.__taxa_exploracao__ = taxa_exploracao
+
 
     def obter_tabela_q_learing(self):
         return self.__tabela_q_learning__
@@ -34,8 +38,8 @@ class Agente:
         return estudo_atualizado
 
     def __atualizar_politica__(self, recompensa: float, estudo: Estudo):
-        fator_desconto = 0.1  # y
-        taxa_aprendizagem = 0.9  # a - learning rate - O quão rápido converge
+        fator_desconto = self.__fator_desconto__ # y
+        taxa_aprendizagem = self.__taxa_aprendizagem__  # a - learning rate - O quão rápido converge
 
         s = self.__utilitario_qlearning__.mapear_numero_repeticao_em_estado(estudo.numero_repeticao)
         a = self.__utilitario_qlearning__.mapear_ef_em_acao(estudo.card.ef)
@@ -53,8 +57,8 @@ class Agente:
         else:
             s = estudo.numero_repeticao - 1  # Recompensa será atribuída a ação passada
             q_atual = self.__tabela_q_learning__[s, :]
-            #taxa_exploracao = 0.9
-            taxa_exploracao = (1. / (s + 1))
+
+            taxa_exploracao = (1. / (s + 1)) if self.__taxa_exploracao__ is None else self.__taxa_exploracao__
 
             acao = np.argmax(q_atual + np.random.randn(1, self.__qtd_efs__) * taxa_exploracao)
             return self.__utilitario_qlearning__.mapear_acao_em_ef(acao)
