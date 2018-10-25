@@ -1,18 +1,14 @@
 from collections import defaultdict
 
-from .mockcards import MockCards
-from .card import Card
+from modelos.cards.mockcards import MockCards
+from modelos.cards.card import Card
+from random import randint
 
 class UtilitarioCard:
 
     __cards_na_memoria__ = defaultdict(list)
 
-    def __init__(self):
-        mock_cards = MockCards.get_cards()
-        for card in mock_cards:
-            self.__cards_na_memoria__[card.id] = card
-
-    def buscar_cards(self, tag: str):
+    def obter_cards(self, tag: str):
         return list(self.__cards_na_memoria__.values())
 
     def buscar_card(self, card_id):
@@ -22,3 +18,15 @@ class UtilitarioCard:
         self.__cards_na_memoria__[card.id] = card
 
 
+    def gerar_cards_aleatorios(self, quantidade: int, ef_padrao: float, tag: str):
+        self.__cards_na_memoria__.clear()
+        for i in range(0, quantidade):
+            novo_card = Card(i, ef_padrao, tag, "Some question", ["1", "2", "3", "4"], str(randint(1, 4)))
+            self.__cards_na_memoria__[i] = novo_card
+
+
+    def gerar_cards_mockados(self):
+        self.__cards_na_memoria__.clear()
+        mock_cards = MockCards.get_cards()
+        for card in mock_cards:
+            self.__cards_na_memoria__[card.id] = card
