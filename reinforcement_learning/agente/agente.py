@@ -35,7 +35,7 @@ class Agente:
 
     def __atualizar_politica__(self, recompensa: float, estudo: Estudo):
         fator_desconto = 0.1  # y
-        taxa_aprendizagem = 0.1  # a - learning rate - O quão rápido converge
+        taxa_aprendizagem = 0.9  # a - learning rate - O quão rápido converge
 
         s = self.__utilitario_qlearning__.mapear_numero_repeticao_em_estado(estudo.numero_repeticao)
         a = self.__utilitario_qlearning__.mapear_ef_em_acao(estudo.card.ef)
@@ -53,8 +53,8 @@ class Agente:
         else:
             s = estudo.numero_repeticao - 1  # Recompensa será atribuída a ação passada
             q_atual = self.__tabela_q_learning__[s, :]
-            taxa_exploracao = 0.9
-            # taxa_exploracao = (1. / (s + 1))
+            #taxa_exploracao = 0.9
+            taxa_exploracao = (1. / (s + 1))
 
             acao = np.argmax(q_atual + np.random.randn(1, self.__qtd_efs__) * taxa_exploracao)
             return self.__utilitario_qlearning__.mapear_acao_em_ef(acao)
