@@ -52,7 +52,7 @@ class UtilitarioEstudo:
     def atualizar_estudo(self, estudo: Estudo):
         self.__lista_estudos__[estudo.card.id] = estudo
 
-    def remover_estudo(self, estudo:Estudo):
+    def marcar_estudo_aprendido(self, estudo:Estudo):
         self.__lista_estudos__.pop(estudo.card.id, None)
         self.__lista_estudos_aprendidos__[estudo.card.id] = estudo
 
