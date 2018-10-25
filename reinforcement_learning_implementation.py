@@ -4,7 +4,7 @@ from modelos.estudo.utilitarioestudo import UtilitarioEstudo
 from user_interface.userinterface import UserInterface
 from reinforcement_learning.agente.agente import Agente
 from utilitario.utilitario_teste.utilitario_teste import UtilitarioTeste
-import numpy as np
+import matplotlib.pyplot as plt
 
 numero_repeticoes_maximo = 36
 
@@ -13,9 +13,12 @@ class Controlador:
     def __init__(self):
         self.__tabela_q_learning__ = None
 
-    def __obter_cards__(self, utilitario_card: UtilitarioCard):
-        cards = utilitario_card.buscar_cards('any tag')
-        return cards
+    def plot_graphic(self, x, y, title, xlabel, ylabel):
+        fig1, ax = plt.subplots()
+        ax.plot(x, y)
+        ax.set(xlabel=xlabel, ylabel=ylabel,title=title)
+        ax.grid()
+        plt.show()
 
     def __criar_estudos__(self, utilitario_estudo: UtilitarioEstudo, cards: [Card]):
         for card in cards:
@@ -32,17 +35,20 @@ class Controlador:
         utilitario_teste = UtilitarioTeste()  # Ajuda na obtenção da recompensa média por episodio e qtd de episodios
 
         agente.__inicializar_tabela_qlearning__(self.__tabela_q_learning__)
-        cards = self.__obter_cards__(utilitario_card)
+        utilitario_card.gerar_cards_aleatorios(2000, 1.3, 'teste')
+        cards = utilitario_card.obter_cards('teste')
 
         #Refatorar essa gambiarra aqui
         self.__criar_estudos__(utilitario_estudo, cards)
         estudos_ativos = utilitario_estudo.obter_estudos()
         numero_episodio = 0
-        recompensa_acumulada = 0
+
 
         while len(estudos_ativos) != 0:
             numero_episodio += 1
             recompensa_acumulada = 0
+            quantidade_erro = 0
+            quantidade_acerto = 0
 
             for estudo_corrente in estudos_ativos:
                 #user_interface.mostrar_card(card)
@@ -65,23 +71,42 @@ class Controlador:
                     utilitario_estudo.remover_estudo(estudo_atualizado)
                 else:
                     utilitario_estudo.atualizar_estudo(estudo_atualizado)
-                utilitario_estudo.imprimir_estudo(estudo_atualizado)
+                #utilitario_estudo.imprimir_estudo(estudo_atualizado)
 
-            utilitario_teste.salvar_recompensa_media(numero_episodio, recompensa_acumulada/len(estudos_ativos))
+                quantidade_acerto += 1 if resposta_do_usuario.acerto else 0
+                quantidade_erro += 1 if not resposta_do_usuario.acerto else 0
+
+            utilitario_estudo.salvar_relacao_estudo_aprendido_estudo_pendente(numero_episodio)
+
+            recompensa_media = recompensa_acumulada / len(estudos_ativos)
+            utilitario_teste.salvar_dados(numero_episodio, recompensa_media, quantidade_acerto, quantidade_erro)
             estudos_ativos = utilitario_estudo.obter_estudos()  # Se o estudo estiver concluido, ele não é selecionado
 
+        # Não há mais estudos
         self.__tabela_q_learning__ = agente.obter_tabela_q_learing()
-        print(f"qtd episodios= {numero_episodio}")
 
-        for estudo in utilitario_estudo.obter_estudos_aprendidos():
-            print(f"Estudo: {estudo.card.id} -> Qtd repetições: {estudo.__qtd_repeticoes__}")
+        x = []
+        y = []
 
         for episodio in range(1, numero_episodio+1):
-            recompensa_episodio = utilitario_teste.obter_recompensa_media_repeticao(episodio)
-            print(f"Episódio: {episodio} -> Recompensa {recompensa_episodio}")
+            taxa_acerto = utilitario_teste.obter_taxa_acerto_episodio(episodio)
+            quantidade_estudos_aprendidos = utilitario_estudo.obter_relacao_estudos_aprendidos_estudos_repeticao(episodio)
+            x.append(episodio)
+            y.append(quantidade_estudos_aprendidos)
+            print(f"Episodio: {episodio} | Taxa de acerto:{taxa_acerto} | Qtd estudos aprendidos: {quantidade_estudos_aprendidos}")
+
+        total_repeticoes = utilitario_estudo.obter_total_repeticoes_cards_aprendidos()
+        print(f"Total de repeticoes dos cards {total_repeticoes}")
+        self.plot_graphic(x,y,"Quantidade de cards aprendidos por episódio", "Episódio", "% de cards aprendidos")
+
 
 
 tabelas = []
+controlador = Controlador()
+controlador.testar_algoritmo()
+tabela_q_learning = controlador.obter_tabela_q_learning()
+print("ACABOU!!!!")
+"""
 for i in range(0, 6):
     controlador = Controlador()
     controlador.testar_algoritmo()
@@ -91,3 +116,4 @@ for i in range(0, 6):
     np.savetxt(nome_arquivo, tabela_q_learning, delimiter=",")
 
 print("finalizado!")
+"""

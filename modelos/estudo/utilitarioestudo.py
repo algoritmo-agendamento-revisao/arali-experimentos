@@ -8,6 +8,7 @@ class UtilitarioEstudo:
 
     __lista_estudos__ = defaultdict(list)
     __lista_estudos_aprendidos__ = defaultdict(list)
+    __relacao_estudo_aprendido_estudo_pendente__ = defaultdict(list)
 
     def criar_estudo(self, card: Card):
         novo_estudo = Estudo(
@@ -29,6 +30,22 @@ class UtilitarioEstudo:
             qtd_repeticoes_totais += estudo.__qtd_repeticoes__
         return qtd_repeticoes_totais/qtd_estudos
 
+    def obter_total_repeticoes_cards_aprendidos(self):
+        qtd_repeticoes = 0
+        for episodio in self.__lista_estudos_aprendidos__.keys():
+            estudo = self.__lista_estudos_aprendidos__[episodio]
+            qtd_repeticoes += estudo.__qtd_repeticoes__
+        return qtd_repeticoes
+
+    def salvar_relacao_estudo_aprendido_estudo_pendente(self, episodio):
+        qtd_estudos_aprendidos = len(self.__lista_estudos_aprendidos__)
+        qtd_estudos_pendentes = len(self.__lista_estudos__)
+        total_estudos = qtd_estudos_aprendidos + qtd_estudos_pendentes
+        self.__relacao_estudo_aprendido_estudo_pendente__[episodio] = qtd_estudos_aprendidos/total_estudos
+
+    def obter_relacao_estudos_aprendidos_estudos_repeticao(self, episodio):
+        return self.__relacao_estudo_aprendido_estudo_pendente__[episodio]
+
     def buscar_estudo(self, card_id: int):
         return self.__lista_estudos__[card_id]
 
@@ -47,3 +64,7 @@ class UtilitarioEstudo:
               f'Card id: {estudo.card.id} |'
               f'Card ef: {estudo.card.ef} |'
               f'Concluido: {estudo.concluido}')
+
+    def imprimir_estudo_qtd_repeticoes(self):
+        for estudo in self.__lista_estudos_aprendidos__:
+            print(f"Estudo: {estudo.card.id} | repetições: {estudo.__qtd_repeticoes__}")
