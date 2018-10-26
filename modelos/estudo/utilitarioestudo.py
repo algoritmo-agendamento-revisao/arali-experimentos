@@ -10,6 +10,11 @@ class UtilitarioEstudo:
     __lista_estudos_aprendidos__ = defaultdict(list)
     __relacao_estudo_aprendido_estudo_pendente__ = defaultdict(list)
 
+    def __init__(self):
+        self.__lista_estudos__.clear()
+        self.__lista_estudos_aprendidos__.clear()
+        self.__relacao_estudo_aprendido_estudo_pendente__.clear()
+
     def criar_estudo(self, card: Card):
         novo_estudo = Estudo(
             card,
