@@ -9,7 +9,7 @@ from modelos_matematicos.formula_repeticao.formula_repeticao import calcular_oi
 
 class Agente:
 
-    def __init__(self, numero_repeticoes, taxa_aprendizagem, fator_desconto, taxa_exploracao=None):
+    def __init__(self, numero_repeticoes, taxa_aprendizagem, fator_desconto, taxa_exploracao=None,tabela_q_learning=None):
         # Contrói uma tabela com uma linha a mais por causa da ultima repetição
         self.__qtd_repeticoes__ = numero_repeticoes + 1
         self.__qtd_efs__ = 16  # 1.3 - 2.8
@@ -18,12 +18,13 @@ class Agente:
         self.__taxa_aprendizagem__ = taxa_aprendizagem
         self.__fator_desconto__ = fator_desconto
         self.__taxa_exploracao__ = taxa_exploracao
+        self.__inicializar_tabela_qlearning__(tabela_q_learning)
 
 
     def obter_tabela_q_learing(self):
         return self.__tabela_q_learning__
 
-    def __inicializar_tabela_qlearning__(self, tabela_q_learning=None):
+    def __inicializar_tabela_qlearning__(self, tabela_q_learning):
         if tabela_q_learning is None:
             self.__tabela_q_learning__ = np.zeros([self.__qtd_repeticoes__, self.__qtd_efs__])
         else:
@@ -85,9 +86,9 @@ class Agente:
                     diferenca_em_dias = self.__calcular_intervalo_em_dias__(ef, estudo.numero_repeticao)
                     estudo.data_proxima_repeticao += diferenca_em_dias
                 except Exception:
-                    print(f"Algo deu errado com o intervalo : {diferenca_em_dias}" + {estudo.data_proxima_repeticao})
+                    print(f"Algo deu errado com o intervalo : {diferenca_em_dias} + {estudo.data_proxima_repeticao}")
 
-            estudo.__qtd_repeticoes__ +=1
+            estudo.__qtd_repeticoes__ += 1
             estudo.numero_repeticao += 1
 
         return estudo
