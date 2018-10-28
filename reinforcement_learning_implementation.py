@@ -29,11 +29,22 @@ class Controlador:
 
     def plot_graphic(self, x, y, title, xlabel, ylabel):
         fig1, ax = plt.subplots()
+
+        y_media = [np.mean(y)]*len(x)
+        y_max = [np.max(y)]*len(x)
+        y_min = [np.min(y)]*len(x)
+
+        media = "Média: {:.2f}".format(y_media[0])
+        max = "Máximo: {:.2f}".format(y_max[0])
+        min = "Mínimo: {:.2f}".format(y_min[0])
+
         ax.plot(x, y)
-        ax.set(xlabel=xlabel, ylabel=ylabel,title=title)
+        ax.plot(x, y_media, label=media, linestyle='-.')
+        ax.plot(x, y_max, label=max, linestyle='-.')
+        ax.plot(x, y_min, label=min, linestyle='-.')
+        ax.legend(loc='upper right')
+        ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
         ax.grid()
-        #plt.xticks(np.arange(0, 40, 10))
-        #plt.yticks(np.arange(0, 1, 0.05))
         plt.show()
 
     def __criar_estudos__(self, qtd_estudos):
@@ -57,14 +68,14 @@ class Controlador:
         taxas_acerto = []
 
         for episodio in range(1, numero_episodio+1):
-            taxa_acerto = self.utilitario_teste.obter_taxa_acerto_episodio(episodio)
+            taxa_acerto = self.utilitario_teste.obter_taxa_acerto_episodio(episodio) * 100
             episodios.append(episodio)
             taxas_acerto.append(taxa_acerto)
 
         if(modo is 'console' or modo is 'ambos'):
             print(f"Episodio: {episodio} | Taxa de acerto:{taxa_acerto} | Qtd estudos aprendidos: {quantidade_estudos_aprendidos}")
         if(modo is 'grafico' or modo is 'ambos'):
-            self.plot_graphic(episodios, taxas_acerto, "Taxa de acerto por episódio", "episódio", "taxa de acerto")
+            self.plot_graphic(episodios, taxas_acerto, "Taxa de acerto por episódio", "Episódio", "Taxa de acerto (em %)")
 
     def testar_algoritmo(self, tabela_q_learning=None):
         agente = Agente(numero_repeticoes_maximo, 0.1, 0.1, 0.9, tabela_q_learning)
