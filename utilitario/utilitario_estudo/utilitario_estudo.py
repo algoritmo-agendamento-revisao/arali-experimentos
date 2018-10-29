@@ -1,4 +1,4 @@
-from .estudo import Estudo
+from modelos.estudo.estudo import Estudo
 
 
 class UtilitarioEstudo:

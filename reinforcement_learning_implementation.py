@@ -1,16 +1,14 @@
 import copy
 
 from collections import defaultdict
-from modelos.cards.utilitariocard import UtilitarioCard
-from modelos.estudo.utilitarioestudo import UtilitarioEstudo
+from utilitario.utilitario_card.utilitariocard import UtilitarioCard
+from utilitario.utilitario_estudo.utilitario_estudo import UtilitarioEstudo
 from user_interface.userinterface import UserInterface
 from reinforcement_learning.agente.agente import Agente
-from utilitario.gerenciador_estudo.gerenciador_estudo import GerenciadorEstudo
+from gerenciador.gerenciador_estudo.gerenciador_estudo import GerenciadorEstudo
 from utilitario.utilitario_teste.utilitario_teste import UtilitarioTeste
 import matplotlib.pyplot as plt
 import numpy as np
-
-numero_repeticoes_maximo = 36
 
 class Controlador:
 
@@ -78,7 +76,7 @@ class Controlador:
             self.plot_graphic(episodios, taxas_acerto, "Taxa de acerto por episódio", "Episódio", "Taxa de acerto (em %)")
 
     def testar_algoritmo(self, tabela_q_learning=None):
-        agente = Agente(numero_repeticoes_maximo, 0.1, 0.1, 0.9, tabela_q_learning)
+        agente = Agente(0.1, 0.1, 0.9, tabela_q_learning)
         user_interface = UserInterface()  # Ambiente
 
         self.__criar_estudos__(1000)
@@ -119,7 +117,7 @@ class Controlador:
             self.utilitario_teste.salvar_dados(numero_episodio, recompensa_media, qtd_acerto, qtd_erro, qtd_estudos_aprendidos)
 
         # Não há mais estudos
-        self.__tabela_q_learning__ = agente.obter_tabela_q_learing()
+        self.__tabela_q_learning__ = agente.obter_tabelas_q_learing()
         self.imprimir_informacoes(numero_episodio, 'grafico')
 
         estudos_aprendidos = self.gerenciador_estudo.obter_estudos_aprendidos()
@@ -130,13 +128,13 @@ class Controlador:
 
 
 tabelas = []
-tabela_q_learning = None
+tabelas_qlearning = None
 
 for i in range(0, 5):
     controlador = Controlador()
-    controlador.testar_algoritmo(tabela_q_learning)
-    tabela_q_learning = controlador.obter_tabela_q_learning()
-    tabelas.append(copy.deepcopy(tabela_q_learning))
+    controlador.testar_algoritmo(tabelas_qlearning)
+    tabelas_qlearning = controlador.obter_tabela_q_learning()
+    tabelas.append(copy.deepcopy(tabelas_qlearning))
 
 print("acabou")
 
