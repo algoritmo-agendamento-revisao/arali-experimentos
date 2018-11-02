@@ -1,5 +1,4 @@
 import copy
-
 from collections import defaultdict
 from utilitario.utilitario_card.utilitariocard import UtilitarioCard
 from utilitario.utilitario_estudo.utilitario_estudo import UtilitarioEstudo
@@ -9,6 +8,16 @@ from gerenciador.gerenciador_estudo.gerenciador_estudo import GerenciadorEstudo
 from utilitario.utilitario_teste.utilitario_teste import UtilitarioTeste
 import matplotlib.pyplot as plt
 import numpy as np
+
+class ConfigTeste:
+
+    def __init__(self, taxa_aprendizagem, taxa_exploracao, fator_desconto, tabela_qlearning_atual, tipo_recompensa, modo_aleatorio=None):
+        self.taxa_aprendizagem = taxa_aprendizagem
+        self.taxa_exploracao = taxa_exploracao
+        self.fator_desconto = fator_desconto
+        self.tabela_qlearning_atual = tabela_qlearning_atual
+        self.tipo_recompensa = tipo_recompensa
+        self.modo_aleatorio = modo_aleatorio
 
 class Controlador:
 
@@ -25,24 +34,15 @@ class Controlador:
         self.utilitario_teste = UtilitarioTeste()  # Ajuda na obtenção da recompensa média por episodio e qtd de episodios
         self.gerenciador_estudo = GerenciadorEstudo()
 
-    def plot_graphic(self, x, y, title, xlabel, ylabel):
-        fig1, ax = plt.subplots()
+    def plot_graphic(self, x, yq, ya, title, xlabel, ylabel, nome_arquivo):
+        fig, ax = plt.subplots()
 
-        y_media = [np.mean(y)]*len(x)
-        y_max = [np.max(y)]*len(x)
-        y_min = [np.min(y)]*len(x)
-
-        media = "Média: {:.2f}".format(y_media[0])
-        max = "Máximo: {:.2f}".format(y_max[0])
-        min = "Mínimo: {:.2f}".format(y_min[0])
-
-        ax.plot(x, y)
-        ax.plot(x, y_media, label=media, linestyle='-.')
-        ax.plot(x, y_max, label=max, linestyle='-.')
-        ax.plot(x, y_min, label=min, linestyle='-.')
+        ax.plot(x, yq, label="Q Learning")
+        ax.plot(x, ya, label="Aleatório")
         ax.legend(loc='upper right')
         ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
         ax.grid()
+        #fig.savefig("graficos/" + nome_arquivo + ".png", dpi=fig.dpi)
         plt.show()
 
     def __criar_estudos__(self, qtd_estudos):
@@ -60,32 +60,31 @@ class Controlador:
     def obter_tabela_q_learning(self):
         return copy.deepcopy(self.__tabela_q_learning__)
 
-    def imprimir_informacoes(self, numero_episodio, modo):
-        #modo - grafico | console | ambos
-        episodios = []
-        taxas_acerto = []
+    def __gerar_nome_arquivo__(self, configuracao: ConfigTeste):
+        return 'aprendizagem_{a}_exploracao_{e}_fdesconto_{y}_recompensa_{r}'\
+            .format(
+                a=configuracao.taxa_aprendizagem,
+                e=configuracao.taxa_exploracao,
+                y=configuracao.fator_desconto,
+                r=configuracao.tipo_recompensa
+            )
 
-        for episodio in range(1, numero_episodio+1):
-            taxa_acerto = self.utilitario_teste.obter_taxa_acerto_episodio(episodio) * 100
-            episodios.append(episodio)
-            taxas_acerto.append(taxa_acerto)
+    def testar_algoritmo(self, configuracao: ConfigTeste):
 
-        if(modo is 'console' or modo is 'ambos'):
-            print(f"Episodio: {episodio} | Taxa de acerto:{taxa_acerto} | Qtd estudos aprendidos: {quantidade_estudos_aprendidos}")
-        if(modo is 'grafico' or modo is 'ambos'):
-            self.plot_graphic(episodios, taxas_acerto, "Taxa de acerto por episódio", "Episódio", "Taxa de acerto (em %)")
-
-    def testar_algoritmo(self, tabela_q_learning=None):
-        agente = Agente(0.1, 0.1, 0.9, tabela_q_learning)
+        agente = Agente(
+            configuracao.taxa_aprendizagem,
+            configuracao.fator_desconto,
+            configuracao.modo_aleatorio,
+            configuracao.taxa_exploracao,
+            configuracao.tabela_qlearning_atual
+        )
         user_interface = UserInterface()  # Ambiente
 
-        self.__criar_estudos__(1000)
+        self.__criar_estudos__(2000)
 
-        for numero_episodio in range(0, 101):
-            recompensa_acumulada = 0
-            qtd_erro = 0
-            qtd_acerto = 0
-            qtd_estudos_aprendidos = 0
+        qtd_estudos_aprendidos_totais = 0
+
+        for passo in range(0, 200):
             estudos_correntes = self.gerenciador_estudo.obter_estudos()
 
             for estudo_corrente in estudos_correntes:
@@ -93,8 +92,7 @@ class Controlador:
                     # Simulando que o algoritmo sempre mostra o card na data agendada
                     intervalo_em_dias = (estudo_corrente.data_proxima_repeticao - estudo_corrente.data_ultima_repeticao).days
                     resposta_do_usuario = user_interface.obter_resposta_automatica(intervalo=intervalo_em_dias)
-                    recompensa = user_interface.calcular_recompensa(resposta_do_usuario, estudo_corrente)
-                    recompensa_acumulada += recompensa
+                    recompensa = user_interface.calcular_recompensa(resposta_do_usuario, estudo_corrente, configuracao.tipo_recompensa)
                     estudo_corrente.acerto_ultima_repeticao = resposta_do_usuario.acerto
                     estudo_atualizado = agente.tomar_acao(recompensa, estudo_corrente)
 
@@ -106,39 +104,73 @@ class Controlador:
                 if estudo_atualizado.concluido:
                     self.gerenciador_estudo.mover_estudo_para_aprendidos(estudo_atualizado)
                     self.gerenciador_estudo.substituir_estudo_aprendido_por_novo_estudo()
-                    qtd_estudos_aprendidos += 1
+                    qtd_estudos_aprendidos_totais += 1
                 else:
                     self.gerenciador_estudo.atualizar_estudo(estudo_atualizado)
 
-                qtd_acerto += 1 if resposta_do_usuario.acerto else 0
-                qtd_erro += 1 if not resposta_do_usuario.acerto else 0
-
-            recompensa_media = recompensa_acumulada / self.gerenciador_estudo.qtd_estudos
-            self.utilitario_teste.salvar_dados(numero_episodio, recompensa_media, qtd_acerto, qtd_erro, qtd_estudos_aprendidos)
-
         # Não há mais estudos
         self.__tabela_q_learning__ = agente.obter_tabelas_q_learing()
-        self.imprimir_informacoes(numero_episodio, 'grafico')
 
-        estudos_aprendidos = self.gerenciador_estudo.obter_estudos_aprendidos()
-        estudos_correntes = self.gerenciador_estudo.obter_estudos()
-        total_repeticoes = self.utilitario_estudo.obter_total_repeticoes(estudos_aprendidos)
-        total_repeticoes += self.utilitario_estudo.obter_total_repeticoes(estudos_correntes)
-        print(f"Total de repeticoes dos cards: {total_repeticoes} | total de cards aprendidos: {len(estudos_aprendidos)}")
+        return qtd_estudos_aprendidos_totais
+
+    def run(self):
+        tabela_qlearning_atual = None
+
+        #taxa_aprendizagem, taxa_exploracao, fator_desconto
+        configuracoes_teste = [
+            ConfigTeste(0.1, 0.1, 0.1, None, "tipo1")
+        ]
+
+        for index, configuracao in enumerate(configuracoes_teste):
+            print(f"Configuração número:{index}")
+            qtd_cards_por_episodio_aleatorio = self.__experimentar__(configuracao, True)
+            qtd_cards_por_episodio_qlearning = self.__experimentar__(configuracao, False)
+
+            self.plot_graphic(
+                range(1, len(qtd_cards_por_episodio_aleatorio)+1),
+                qtd_cards_por_episodio_qlearning,
+                qtd_cards_por_episodio_aleatorio,
+                "Comparação de performance Q Learning",
+                "Episódio",
+                "Qtd de cards aprendidos",
+                "TESTE"
+            )
 
 
-tabelas = []
-tabelas_qlearning = None
+    def __experimentar__(self, configuracao_teste, modo_aleatorio):
+        cards_aprendidos_experimento = []
+        qtd_experimento = 3
+        qtd_episodios = 100
 
-for i in range(0, 5):
-    controlador = Controlador()
-    controlador.testar_algoritmo(tabelas_qlearning)
-    tabelas_qlearning = controlador.obter_tabela_q_learning()
-    tabelas.append(copy.deepcopy(tabelas_qlearning))
+        for n_experimento in range(0, qtd_experimento):
 
-print("acabou")
+            configuracao_teste.tabela_qlearning_atual = None
+            configuracao_teste.modo_aleatorio = modo_aleatorio
 
-"""
-nome_arquivo = "execução %d" %(i+1) + ".csv"
-np.savetxt(nome_arquivo, tabela_q_learning, delimiter=",")
-"""
+            cards_aprendidos_episodio = []
+
+            for episodio in range(0, qtd_episodios):
+                controlador = Controlador()
+                qtd_cards_aprendidos = controlador.testar_algoritmo(configuracao_teste)
+                cards_aprendidos_episodio.append(qtd_cards_aprendidos)
+                tabela_qlearning_atual = controlador.obter_tabela_q_learning()
+                configuracao_teste.tabela_qlearning_atual = tabela_qlearning_atual
+                print(f"Execução em: {(((episodio+1)*(n_experimento+1))/300)*100:.2f}")
+
+            cards_aprendidos_experimento.append(cards_aprendidos_episodio)
+
+        qtd_media_cards_aprendidos_experimento = []
+
+        for n_episodio in range(0, qtd_episodios):
+            qtd_media_cards_episodio = 0
+
+            for n_experimento in range(0, qtd_experimento):
+                qtd_media_cards_episodio += cards_aprendidos_experimento[n_experimento][n_episodio]
+
+            qtd_media_cards_episodio = round(qtd_media_cards_episodio/qtd_experimento)
+            qtd_media_cards_aprendidos_experimento.append(qtd_media_cards_episodio)
+
+        return qtd_media_cards_aprendidos_experimento
+
+
+Controlador().run()

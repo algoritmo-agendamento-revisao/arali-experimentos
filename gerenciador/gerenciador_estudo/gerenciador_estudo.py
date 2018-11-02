@@ -11,7 +11,7 @@ class GerenciadorEstudo:
     __lista_estudos_correntes__ = defaultdict(list) # Lista dos estudos que usuário está vendo atualmente
     __lista_estudos_aprendidos__ = defaultdict(list) # Lista dos estudos que o usuário já aprendeu
     __qtd_total_cards__: int
-    qtd_estudos = 50
+    qtd_estudos = 30
 
     def __init__(self):
         self.__lista_estudos__.clear()

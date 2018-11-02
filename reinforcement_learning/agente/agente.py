@@ -1,3 +1,5 @@
+from random import randint
+
 import numpy as np
 from datetime import timedelta
 from datetime import datetime
@@ -11,22 +13,24 @@ from gerenciador.gerenciador_tabela_qlearning.gerenciador_tabela_qlearning impor
 class Agente:
 
 
-    def __init__(self, taxa_aprendizagem, fator_desconto, taxa_exploracao=None, tabelas_q_learning=None):
+    def __init__(self, taxa_aprendizagem, fator_desconto, modo_aleatorio, taxa_exploracao=None, tabelas_q_learning=None):
         # Contrói uma tabela com uma linha a mais por causa da ultima repetição
         self.__qtd_efs__ = 16  # 1.3 - 2.8
-        self.__qtd_repeticoes = 36
+        self.__qtd_repeticoes = 15
         self.__utilitario_qlearning__ = UtilitarioQLearning()
         self.__taxa_aprendizagem__ = taxa_aprendizagem
         self.__fator_desconto__ = fator_desconto
+        self.__modo_aleatorio__ = modo_aleatorio
         self.__taxa_exploracao__ = taxa_exploracao
         self.__gerenciador_tabela_qlearning__ = GerenciadorTabelaQLearning(self.__qtd_repeticoes, self.__qtd_efs__)
-
+        self.__inicializar_tabelas_qlearning__(tabelas_q_learning)
 
     def __inicializar_tabelas_qlearning__(self, tabelas_qlearning):
-        for tag_tabela in tabelas_qlearning:
-            tabela_qlearning = tabelas_qlearning[tag_tabela]
-            self.__gerenciador_tabela_qlearning__.criar_nova_tabela(tabela_qlearning, tag_tabela)
-
+        # Inicializa as tabelas Q Learning caso venha como parâmetro
+        if tabelas_qlearning is not None:
+            for tag_tabela in tabelas_qlearning:
+                tabela_qlearning = tabelas_qlearning[tag_tabela]
+                self.__gerenciador_tabela_qlearning__.criar_nova_tabela(tabela_qlearning, tag_tabela)
 
     def obter_tabelas_q_learing(self):
         return self.__gerenciador_tabela_qlearning__.obter_tabelas_q_learning()
@@ -34,7 +38,8 @@ class Agente:
     def tomar_acao(self, recompensa: float, estudo: Estudo):
         if estudo.numero_repeticao is not 1:
             self.__atualizar_politica__(recompensa, estudo)
-        estudo.card.ef = self.__calcular_ef_card__(estudo)
+        estudo.card.ef = randint(13, 28) / 10 if self.__modo_aleatorio__ else self.__calcular_ef_card__(estudo)
+
         estudo_atualizado = self.__atualizar_info_estudo__(estudo)
         estudo_atualizado.concluido = self.__verificar_estudo_concluido__(estudo_atualizado)
         return estudo_atualizado
@@ -66,7 +71,7 @@ class Agente:
             s = estudo.numero_repeticao - 1  # Recompensa será atribuída a ação passada
             q_atual = tabela_qlearning[s, :]
 
-            taxa_exploracao = (1. / (s + 1)) if self.__taxa_exploracao__ is None else self.__taxa_exploracao__
+            taxa_exploracao = (1 / (s + 1)) if self.__taxa_exploracao__ is None else self.__taxa_exploracao__
 
             acao = np.argmax(q_atual + np.random.randn(1, self.__qtd_efs__) * taxa_exploracao)
             return self.__utilitario_qlearning__.mapear_acao_em_ef(acao)
@@ -101,8 +106,8 @@ class Agente:
         return estudo
 
     def __verificar_estudo_concluido__(self, estudo: Estudo):
-        finalizou_por_repeticao = estudo.numero_repeticao >= 36
-        finalizou_por_intervalo = (estudo.data_proxima_repeticao - estudo.data_ultima_repeticao).days >= 1100
+        finalizou_por_repeticao = estudo.numero_repeticao >= 15
+        finalizou_por_intervalo = (estudo.data_proxima_repeticao - estudo.data_ultima_repeticao).days >= 365
         return finalizou_por_repeticao or finalizou_por_intervalo
 
     def __calcular_intervalo_em_dias__(self, ef: float, repeticao: int):
