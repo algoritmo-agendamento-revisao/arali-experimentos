@@ -63,9 +63,10 @@ class UserInterface:
 
     def calcular_recompensa(self, resposta: RespostaUsuario, estudo_corrente: Estudo, tipo_formula: str):
         if resposta.acerto is False:
-            #return -1/estudo_corrente.numero_repeticao
-            return -1
-            #return -10 * (estudo_corrente.data_proxima_repeticao - estudo_corrente.data_ultima_repeticao).days
+            if tipo_formula is "tipo3":
+                return -1/estudo_corrente.numero_repeticao
+            else:
+                return -1
         else:
             intervalo = (estudo_corrente.data_proxima_repeticao - estudo_corrente.data_ultima_repeticao).days
             repeticao = estudo_corrente.numero_repeticao
@@ -73,12 +74,10 @@ class UserInterface:
 
             recompensa: float
 
-            if tipo_formula is "tipo1":
+            if tipo_formula is "tipo1" or tipo_formula is "tipo3":
                 recompensa = round((intervalo * (repeticao / tempo_resposta)), 5)
 
             elif tipo_formula is "tipo2":
                 recompensa = round((intervalo * (repeticao / math.pow(tempo_resposta, 2))), 5)
 
             return recompensa
-            #print(f'Recompensa: {recompensa} do estudo: {estudo_corrente.card.id} | repeticao: {estudo_corrente.numero_repeticao}')
-

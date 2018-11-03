@@ -1,4 +1,5 @@
 import copy
+import os
 from collections import defaultdict
 from utilitario.utilitario_card.utilitariocard import UtilitarioCard
 from utilitario.utilitario_estudo.utilitario_estudo import UtilitarioEstudo
@@ -8,6 +9,7 @@ from gerenciador.gerenciador_estudo.gerenciador_estudo import GerenciadorEstudo
 from utilitario.utilitario_teste.utilitario_teste import UtilitarioTeste
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 class ConfigTeste:
 
@@ -34,16 +36,25 @@ class Controlador:
         self.utilitario_teste = UtilitarioTeste()  # Ajuda na obtenção da recompensa média por episodio e qtd de episodios
         self.gerenciador_estudo = GerenciadorEstudo()
 
-    def plot_graphic(self, x, yq, ya, title, xlabel, ylabel, nome_arquivo):
+    def salvar_grafico(self, x, yq, ya, title, xlabel, ylabel, path, name):
         fig, ax = plt.subplots()
+
+        q_mean = np.mean(yq)
+        a_mean = np.mean(ya)
+        q_mean_line = [q_mean]*len(x)
+        a_mean_line = [a_mean]*len(x)
 
         ax.plot(x, yq, label="Q Learning")
         ax.plot(x, ya, label="Aleatório")
+        ax.plot(x, q_mean_line, label="Média Q Learning: {:.0f}".format(q_mean), linestyle='--')
+        ax.plot(x, a_mean_line, label="Média Aleatório: {:.0f}".format(a_mean), linestyle='--')
+
         ax.legend(loc='upper right')
         ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
         ax.grid()
-        #fig.savefig("graficos/" + nome_arquivo + ".png", dpi=fig.dpi)
-        plt.show()
+        ax.margins(x=0)
+        fig.savefig(path + name + ".png", dpi=fig.dpi)
+        #plt.show()
 
     def __criar_estudos__(self, qtd_estudos):
         self.utilitario_card.gerar_cards_aleatorios(qtd_estudos, 1.3, 'teste')
@@ -72,9 +83,9 @@ class Controlador:
     def testar_algoritmo(self, configuracao: ConfigTeste):
 
         agente = Agente(
-            configuracao.taxa_aprendizagem,
             configuracao.fator_desconto,
             configuracao.modo_aleatorio,
+            configuracao.taxa_aprendizagem,
             configuracao.taxa_exploracao,
             configuracao.tabela_qlearning_atual
         )
@@ -115,25 +126,48 @@ class Controlador:
 
     def run(self):
         tabela_qlearning_atual = None
+        nome_diretorio = "resultado_experimento/"
 
         #taxa_aprendizagem, taxa_exploracao, fator_desconto
         configuracoes_teste = [
-            ConfigTeste(0.1, 0.1, 0.1, None, "tipo1")
+            ConfigTeste(0.1, 0.1, 0.1, None, "tipo1"),
+            ConfigTeste(0.1, 0.1, 0.1, None, "tipo2"),
+            ConfigTeste(0.1, 0.1, 0.1, None, "tipo3"),
+            ConfigTeste(0.1, 0.1, 0.5, None, "tipo1"),
+
         ]
 
         for index, configuracao in enumerate(configuracoes_teste):
-            print(f"Configuração número:{index}")
+            print(f"Progresso atual:{index+1}/81")
             qtd_cards_por_episodio_aleatorio = self.__experimentar__(configuracao, True)
             qtd_cards_por_episodio_qlearning = self.__experimentar__(configuracao, False)
 
-            self.plot_graphic(
+            # Montando a estrutura do csv
+            tabela = []
+            for i in range(0, len(qtd_cards_por_episodio_aleatorio)):
+                tabela.append(
+                    [i+1, qtd_cards_por_episodio_qlearning[i], qtd_cards_por_episodio_aleatorio[i]]
+                )
+
+            # Cria diretório novo para salvar a tabela e o gráfico
+            path = nome_diretorio+"experimento{:.0f}".format(index+1)+"/"
+            if not os.path.exists(path):
+                os.makedirs(path)
+
+            # Transforma a tabela para salvar em um csv
+            df = pd.DataFrame(tabela)
+            df.to_csv(path+"tabela.csv", index=False, header=["Episódio", "Quantidade de cards aprendidos - Q Learning", "Quantidade de cards aprendidos - Política aleatória"])
+
+            # Imprimir e salva o gráfico
+            self.salvar_grafico(
                 range(1, len(qtd_cards_por_episodio_aleatorio)+1),
                 qtd_cards_por_episodio_qlearning,
                 qtd_cards_por_episodio_aleatorio,
-                "Comparação de performance Q Learning",
-                "Episódio",
-                "Qtd de cards aprendidos",
-                "TESTE"
+                "Performance aprendizagem: Q Learning x Política aleatória",
+                "Número episódio",
+                "Quantidade de cards aprendidos",
+                path,
+                self.__gerar_nome_arquivo__(configuracao)
             )
 
 
@@ -155,7 +189,6 @@ class Controlador:
                 cards_aprendidos_episodio.append(qtd_cards_aprendidos)
                 tabela_qlearning_atual = controlador.obter_tabela_q_learning()
                 configuracao_teste.tabela_qlearning_atual = tabela_qlearning_atual
-                print(f"Execução em: {(((episodio+1)*(n_experimento+1))/300)*100:.2f}")
 
             cards_aprendidos_experimento.append(cards_aprendidos_episodio)
 

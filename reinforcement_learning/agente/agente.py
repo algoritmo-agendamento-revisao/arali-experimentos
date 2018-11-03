@@ -13,7 +13,7 @@ from gerenciador.gerenciador_tabela_qlearning.gerenciador_tabela_qlearning impor
 class Agente:
 
 
-    def __init__(self, taxa_aprendizagem, fator_desconto, modo_aleatorio, taxa_exploracao=None, tabelas_q_learning=None):
+    def __init__(self, fator_desconto, modo_aleatorio, taxa_aprendizagem=None, taxa_exploracao=None, tabelas_q_learning=None):
         # Contrói uma tabela com uma linha a mais por causa da ultima repetição
         self.__qtd_efs__ = 16  # 1.3 - 2.8
         self.__qtd_repeticoes = 15
@@ -46,7 +46,7 @@ class Agente:
 
     def __atualizar_politica__(self, recompensa: float, estudo: Estudo):
         fator_desconto = self.__fator_desconto__ # y
-        taxa_aprendizagem = self.__taxa_aprendizagem__  # a - learning rate - O quão rápido converge
+        taxa_aprendizagem = (1/estudo.numero_repeticao) if self.__taxa_aprendizagem__ is None else self.__taxa_aprendizagem__
         tag = estudo.card.tag
 
         tabela_qlearning = self.__gerenciador_tabela_qlearning__.obter_tabela_qlearning(tag)
