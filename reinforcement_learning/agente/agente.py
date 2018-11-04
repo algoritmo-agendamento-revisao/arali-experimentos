@@ -107,7 +107,7 @@ class Agente:
 
     def __verificar_estudo_concluido__(self, estudo: Estudo):
         finalizou_por_repeticao = estudo.numero_repeticao >= 15
-        finalizou_por_intervalo = (estudo.data_proxima_repeticao - estudo.data_ultima_repeticao).days >= 365
+        finalizou_por_intervalo = (estudo.data_proxima_repeticao - estudo.data_ultima_repeticao).days >= 730
         return finalizou_por_repeticao or finalizou_por_intervalo
 
     def __calcular_intervalo_em_dias__(self, ef: float, repeticao: int):

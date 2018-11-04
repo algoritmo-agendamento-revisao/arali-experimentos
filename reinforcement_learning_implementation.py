@@ -46,14 +46,20 @@ class Controlador:
 
         ax.plot(x, yq, label="Q Learning")
         ax.plot(x, ya, label="Aleatório")
-        ax.plot(x, q_mean_line, label="Média Q Learning: {:.0f}".format(q_mean), linestyle='--')
-        ax.plot(x, a_mean_line, label="Média Aleatório: {:.0f}".format(a_mean), linestyle='--')
+        ax.plot(x, q_mean_line, label="Média Q Learning", linestyle='--')
+        ax.plot(x, a_mean_line, label="Média Aleatória", linestyle='--')
 
-        ax.legend(loc='upper right')
         ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
         ax.grid()
         ax.margins(x=0)
-        fig.savefig(path + name + ".png", dpi=fig.dpi)
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0 + box.height * 0.1,
+                         box.width, box.height * 0.9])
+
+        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
+                  fancybox=True, shadow=True, ncol=4)
+
+        fig.savefig(path + name + ".png", dpi=400)
         #plt.show()
 
     def __criar_estudos__(self, qtd_estudos):
@@ -72,13 +78,11 @@ class Controlador:
         return copy.deepcopy(self.__tabela_q_learning__)
 
     def __gerar_nome_arquivo__(self, configuracao: ConfigTeste):
-        return 'aprendizagem_{a}_exploracao_{e}_fdesconto_{y}_recompensa_{r}'\
-            .format(
-                a=configuracao.taxa_aprendizagem,
-                e=configuracao.taxa_exploracao,
-                y=configuracao.fator_desconto,
-                r=configuracao.tipo_recompensa
-            )
+        a = configuracao.taxa_aprendizagem if configuracao.taxa_aprendizagem is not None else 'linear'
+        e = configuracao.taxa_exploracao if configuracao.taxa_exploracao is not None else 'linear'
+        y = configuracao.fator_desconto
+        r = configuracao.tipo_recompensa
+        return 'aprendizagem_{a}_exploracao_{e}_fdesconto_{y}_recompensa_{r}'.format(a=a, e=e, y=y, r=r)
 
     def testar_algoritmo(self, configuracao: ConfigTeste):
 
@@ -134,11 +138,88 @@ class Controlador:
             ConfigTeste(0.1, 0.1, 0.1, None, "tipo2"),
             ConfigTeste(0.1, 0.1, 0.1, None, "tipo3"),
             ConfigTeste(0.1, 0.1, 0.5, None, "tipo1"),
+            ConfigTeste(0.1, 0.1, 0.5, None, "tipo2"),
+            ConfigTeste(0.1, 0.1, 0.5, None, "tipo3"),
+            ConfigTeste(0.1, 0.1, 0.9, None, "tipo1"),
+            ConfigTeste(0.1, 0.1, 0.9, None, "tipo2"),
+            ConfigTeste(0.1, 0.1, 0.9, None, "tipo3"),
+            ConfigTeste(0.1, 0.9, 0.1, None, "tipo1"),
+            ConfigTeste(0.1, 0.9, 0.1, None, "tipo2"),
+            ConfigTeste(0.1, 0.9, 0.1, None, "tipo3"),
+            ConfigTeste(0.1, 0.9, 0.5, None, "tipo1"),
+            ConfigTeste(0.1, 0.9, 0.5, None, "tipo2"),
+            ConfigTeste(0.1, 0.9, 0.5, None, "tipo3"),
+            ConfigTeste(0.1, 0.9, 0.9, None, "tipo1"),
+            ConfigTeste(0.1, 0.9, 0.9, None, "tipo2"),
+            ConfigTeste(0.1, 0.9, 0.9, None, "tipo3"),
+            ConfigTeste(0.1, None, 0.1, None, "tipo1"),
+            ConfigTeste(0.1, None, 0.1, None, "tipo2"),
+            ConfigTeste(0.1, None, 0.1, None, "tipo3"),
+            ConfigTeste(0.1, None, 0.5, None, "tipo1"),
+            ConfigTeste(0.1, None, 0.5, None, "tipo2"),
+            ConfigTeste(0.1, None, 0.5, None, "tipo3"),
+            ConfigTeste(0.1, None, 0.9, None, "tipo1"),
+            ConfigTeste(0.1, None, 0.9, None, "tipo2"),
+            ConfigTeste(0.1, None, 0.9, None, "tipo3"),
+            ConfigTeste(0.9, 0.1, 0.1, None, "tipo1"),
+            ConfigTeste(0.9, 0.1, 0.1, None, "tipo2"),
+            ConfigTeste(0.9, 0.1, 0.1, None, "tipo3"),
+            ConfigTeste(0.9, 0.1, 0.5, None, "tipo1"),
+            ConfigTeste(0.9, 0.1, 0.5, None, "tipo2"),
+            ConfigTeste(0.9, 0.1, 0.5, None, "tipo3"),
+            ConfigTeste(0.9, 0.1, 0.9, None, "tipo1"),
+            ConfigTeste(0.9, 0.1, 0.9, None, "tipo2"),
+            ConfigTeste(0.9, 0.1, 0.9, None, "tipo3"),
+            ConfigTeste(0.9, 0.9, 0.1, None, "tipo1"),
+            ConfigTeste(0.9, 0.9, 0.1, None, "tipo2"),
+            ConfigTeste(0.9, 0.9, 0.1, None, "tipo3"),
+            ConfigTeste(0.9, 0.9, 0.5, None, "tipo1"),
+            ConfigTeste(0.9, 0.9, 0.5, None, "tipo2"),
+            ConfigTeste(0.9, 0.9, 0.5, None, "tipo3"),
+            ConfigTeste(0.9, 0.9, 0.9, None, "tipo1"),
+            ConfigTeste(0.9, 0.9, 0.9, None, "tipo2"),
+            ConfigTeste(0.9, 0.9, 0.9, None, "tipo3"),
+            ConfigTeste(0.9, None, 0.1, None, "tipo1"),
+            ConfigTeste(0.9, None, 0.1, None, "tipo2"),
+            ConfigTeste(0.9, None, 0.1, None, "tipo3"),
+            ConfigTeste(0.9, None, 0.5, None, "tipo1"),
+            ConfigTeste(0.9, None, 0.5, None, "tipo2"),
+            ConfigTeste(0.9, None, 0.5, None, "tipo3"),
+            ConfigTeste(0.9, None, 0.9, None, "tipo1"),
+            ConfigTeste(0.9, None, 0.9, None, "tipo2"),
+            ConfigTeste(0.9, None, 0.9, None, "tipo3"),
+            ConfigTeste(None, 0.1, 0.1, None, "tipo1"),
+            ConfigTeste(None, 0.1, 0.1, None, "tipo2"),
+            ConfigTeste(None, 0.1, 0.1, None, "tipo3"),
+            ConfigTeste(None, 0.1, 0.5, None, "tipo1"),
+            ConfigTeste(None, 0.1, 0.5, None, "tipo2"),
+            ConfigTeste(None, 0.1, 0.5, None, "tipo3"),
+            ConfigTeste(None, 0.1, 0.9, None, "tipo1"),
+            ConfigTeste(None, 0.1, 0.9, None, "tipo2"),
+            ConfigTeste(None, 0.1, 0.9, None, "tipo3"),
+            ConfigTeste(None, 0.9, 0.1, None, "tipo1"),
+            ConfigTeste(None, 0.9, 0.1, None, "tipo2"),
+            ConfigTeste(None, 0.9, 0.1, None, "tipo3"),
+            ConfigTeste(None, 0.9, 0.5, None, "tipo1"),
+            ConfigTeste(None, 0.9, 0.5, None, "tipo2"),
+            ConfigTeste(None, 0.9, 0.5, None, "tipo3"),
+            ConfigTeste(None, 0.9, 0.9, None, "tipo1"),
+            ConfigTeste(None, 0.9, 0.9, None, "tipo2"),
+            ConfigTeste(None, 0.9, 0.9, None, "tipo3"),
+            ConfigTeste(None, None, 0.1, None, "tipo1"),
+            ConfigTeste(None, None, 0.1, None, "tipo2"),
+            ConfigTeste(None, None, 0.1, None, "tipo3"),
+            ConfigTeste(None, None, 0.5, None, "tipo1"),
+            ConfigTeste(None, None, 0.5, None, "tipo2"),
+            ConfigTeste(None, None, 0.5, None, "tipo3"),
+            ConfigTeste(None, None, 0.9, None, "tipo1"),
+            ConfigTeste(None, None, 0.9, None, "tipo2"),
+            ConfigTeste(None, None, 0.9, None, "tipo3")
 
         ]
 
         for index, configuracao in enumerate(configuracoes_teste):
-            print(f"Progresso atual:{index+1}/81")
+            print(f"Experimento número:{index+1}")
             qtd_cards_por_episodio_aleatorio = self.__experimentar__(configuracao, True)
             qtd_cards_por_episodio_qlearning = self.__experimentar__(configuracao, False)
 
@@ -184,6 +265,8 @@ class Controlador:
             cards_aprendidos_episodio = []
 
             for episodio in range(0, qtd_episodios):
+                print(f"Sub-Experimento:{n_experimento+1} de 3 | Episódio: {episodio} de 100")
+
                 controlador = Controlador()
                 qtd_cards_aprendidos = controlador.testar_algoritmo(configuracao_teste)
                 cards_aprendidos_episodio.append(qtd_cards_aprendidos)
