@@ -44,9 +44,9 @@ class Controlador:
         q_mean_line = [q_mean]*len(x)
         a_mean_line = [a_mean]*len(x)
 
-        ax.plot(x, yq, label="Q Learning")
+        ax.plot(x, yq, label="Q-Learning")
         ax.plot(x, ya, label="Aleatório")
-        ax.plot(x, q_mean_line, label="Média Q Learning", linestyle='--')
+        ax.plot(x, q_mean_line, label="Média Q-Learning", linestyle='--')
         ax.plot(x, a_mean_line, label="Média Aleatória", linestyle='--')
 
         ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
@@ -134,7 +134,7 @@ class Controlador:
         if not os.path.exists(nome_diretorio):
             os.makedirs(nome_diretorio)
 
-        # taxa_aprendizagem, taxa_exploracao, fator_desconto, formula recompensa
+        #taxa_aprendizagem, taxa_exploracao, fator_desconto
         configuracoes_teste = [
             ConfigTeste(0.1, 0.1, 0.1, None, "tipo1"),
             ConfigTeste(0.1, 0.1, 0.1, None, "tipo2"),
@@ -246,7 +246,7 @@ class Controlador:
                 range(1, len(qtd_cards_por_episodio_aleatorio)+1),
                 qtd_cards_por_episodio_qlearning,
                 qtd_cards_por_episodio_aleatorio,
-                "Performance aprendizagem: Q Learning x Política aleatória",
+                "Performance aprendizagem: Q-Learning x Política aleatória",
                 "Número episódio",
                 "Quantidade de cards aprendidos",
                 path,
