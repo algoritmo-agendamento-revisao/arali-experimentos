@@ -12,11 +12,10 @@ from gerenciador.gerenciador_tabela_qlearning.gerenciador_tabela_qlearning impor
 
 class Agente:
 
-
     def __init__(self, fator_desconto, modo_aleatorio, taxa_aprendizagem=None, taxa_exploracao=None, tabelas_q_learning=None):
         # Contrói uma tabela com uma linha a mais por causa da ultima repetição
         self.__qtd_efs__ = 16  # 1.3 - 2.8
-        self.__qtd_repeticoes = 15
+        self.__qtd_repeticoes = 40
         self.__utilitario_qlearning__ = UtilitarioQLearning()
         self.__taxa_aprendizagem__ = taxa_aprendizagem
         self.__fator_desconto__ = fator_desconto
@@ -98,7 +97,10 @@ class Agente:
                     diferenca_em_dias = self.__calcular_intervalo_em_dias__(ef, estudo.numero_repeticao)
                     estudo.data_proxima_repeticao += diferenca_em_dias
                 except Exception:
-                    print(f"Algo deu errado com o intervalo : {diferenca_em_dias} + {estudo.data_proxima_repeticao}")
+                    estudo.concluido = True
+                    print(f"Algo deu errado com o intervalo : {diferenca_em_dias} | "
+                          f"{estudo.data_ultima_repeticao} | "
+                          f"{estudo.data_proxima_repeticao}")
 
             estudo.__qtd_repeticoes__ += 1
             estudo.numero_repeticao += 1
@@ -106,12 +108,15 @@ class Agente:
         return estudo
 
     def __verificar_estudo_concluido__(self, estudo: Estudo):
-        finalizou_por_repeticao = estudo.numero_repeticao >= 15
-        finalizou_por_intervalo = (estudo.data_proxima_repeticao - estudo.data_ultima_repeticao).days >= 730
-        return finalizou_por_repeticao or finalizou_por_intervalo
+        return (estudo.data_proxima_repeticao - estudo.data_ultima_repeticao).days >= 730
 
     def __calcular_intervalo_em_dias__(self, ef: float, repeticao: int):
         if repeticao is 1:
             return calcular_oi(ef, repeticao)
         else:
-            return calcular_oi(ef, repeticao) - calcular_oi(ef, repeticao - 1)
+            try:
+                return calcular_oi(ef, repeticao) - calcular_oi(ef, repeticao - 1)
+            except Exception:
+                print(f"Repeticao : {repeticao}, ef: {ef}")
+                raise Exception
+
