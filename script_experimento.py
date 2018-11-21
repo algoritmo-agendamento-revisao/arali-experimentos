@@ -131,8 +131,10 @@ class Controlador:
     def run(self):
         tabela_qlearning_atual = None
         nome_diretorio = "resultado_experimento/"
+        if not os.path.exists(nome_diretorio):
+            os.makedirs(nome_diretorio)
 
-        #taxa_aprendizagem, taxa_exploracao, fator_desconto
+        # taxa_aprendizagem, taxa_exploracao, fator_desconto, formula recompensa
         configuracoes_teste = [
             ConfigTeste(0.1, 0.1, 0.1, None, "tipo1"),
             ConfigTeste(0.1, 0.1, 0.1, None, "tipo2"),
