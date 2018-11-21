@@ -1,7 +1,7 @@
 ## Aplicação de Agendamento de Revisões Utilizando Aprendizado por Reforço - Experimentos
 Esse repositório hospeda o código fonte que foi utilizado para realização dos experimentos para comparar e comprovar a 
-performance do algoritmo de agendamento de revisões com uma política aleatória.  
-O experimento gera um gráfico e uma tabela para cada cenário estipulado, totalizando 81 gŕaficos e 81 tabelas no final 
+performance do algoritmo de agendamento de revisões em relação a uma política aleatória.  
+O experimento gera um gráfico e uma tabela para cada cenário estipulado, totalizando 81 gráficos e 81 tabelas no final 
 da execução.  
   
 Foram definidos para os testes:
